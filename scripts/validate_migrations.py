@@ -83,6 +83,15 @@ def main():
            VALUES (?,?,?,?,?,?,?,CURRENT_TIMESTAMP)""",
         ("bad-pending-grant", "assignment-virtual-gm", "EXEC", "company", None, "active", "test-ceo"),
     )
+    db.execute(
+        """INSERT INTO role_scope_grants
+           (id,role_assignment_id,module_key,scope_type,scope_id,grant_status)
+           VALUES ('pending-grant-update','assignment-virtual-gm','EXEC','company',NULL,'pending')"""
+    )
+    expect_integrity_error(
+        db,
+        "UPDATE role_scope_grants SET grant_status='active', granted_by='test-ceo', granted_at=CURRENT_TIMESTAMP WHERE id='pending-grant-update'",
+    )
 
     # The already active legal-advisor seed can receive a grant only through a human activator;
     # this is a disposable schema test, not an actual permission grant or activation.
