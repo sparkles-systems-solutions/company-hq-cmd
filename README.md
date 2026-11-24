@@ -45,3 +45,4 @@ See:
 - [Database migration](migrations/0001_initial.sql)
 - [Virtual AI Legal Advisor seed migration](migrations/0002_virtual_legal_advisor.sql)
 - [Virtual AI role catalogue migration](migrations/0003_virtual_ai_role_catalogue.sql)
+- [Virtual AI member onboarding migration](migrations/0004_virtual_ai_member_onboarding.sql)
