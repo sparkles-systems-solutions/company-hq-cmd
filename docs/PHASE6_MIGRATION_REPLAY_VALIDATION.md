@@ -17,7 +17,7 @@ Reviewed the migration chain and its referenced schema:
 The source review identified three database-level safeguards that should not depend solely on application code. Added:
 
 1. Role permission rules cannot grant `approve` or `execute` to virtual role catalogue entries.
-2. A scoped grant cannot be activated unless its grantor is an active human and the assigned role member is active.
+2. A scoped grant cannot be inserted or later updated to active unless its grantor is an active human and the assigned role member is active.
 3. An approval control must be created unconsumed; consumption is a one-time update by an active human.
 
 These constraints supplement, not replace, Worker authorization and CEO approval controls.
@@ -32,11 +32,11 @@ Added `scripts/validate_migrations.py`. It uses Python's built-in SQLite engine 
 - No role permission rules, scoped grants, login identities, sessions, share tokens or approval controls are seeded by the migration chain.
 - Virtual roster identities cannot be created as login users.
 - Virtual role catalogue entries cannot be granted approve/execute.
-- Pending role members cannot receive active scope grants.
+- Pending role members cannot receive active scope grants, including by updating an initially pending grant.
 - Approval controls cannot be inserted already consumed and cannot be consumed twice.
 - Share tokens can be created in the disposable test only by a synthetic active human and within the seven-day expiry cap.
 
-The GitHub Actions workflow was extended to run this harness alongside Worker syntax checks and unit tests.
+The GitHub Actions workflow was extended to run this harness alongside Worker syntax checks and unit tests. Its path filters include Worker source, migrations, validation scripts and the workflow itself.
 
 ## 4. Verification status
 
