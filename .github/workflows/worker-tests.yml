@@ -30,3 +30,9 @@ jobs:
       - name: Unit tests
         working-directory: worker
         run: npm test
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Replay migrations in disposable SQLite and verify safety invariants
+        run: python scripts/validate_migrations.py
