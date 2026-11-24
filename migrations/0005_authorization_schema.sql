@@ -58,6 +58,22 @@ CREATE TABLE IF NOT EXISTS role_permission_rules (
 );
 
 -- Explicit record/project/department scope grants. Pending is the safe default.
+
+-- Virtual-role catalogue entries must never grant approval or execution authority.
+CREATE TRIGGER IF NOT EXISTS trg_virtual_role_no_privileged_allow_insert
+BEFORE INSERT ON role_permission_rules
+FOR EACH ROW
+WHEN NEW.effect = 'allow'
+AND NEW.action_key IN ('approve','execute')
+BEGIN SELECT RAISE(ABORT, 'virtual role permissions cannot allow approve or execute'); END;
+
+CREATE TRIGGER IF NOT EXISTS trg_virtual_role_no_privileged_allow_update
+BEFORE UPDATE OF effect, action_key, role_id ON role_permission_rules
+FOR EACH ROW
+WHEN NEW.effect = 'allow'
+AND NEW.action_key IN ('approve','execute')
+BEGIN SELECT RAISE(ABORT, 'virtual role permissions cannot allow approve or execute'); END;
+
 CREATE TABLE IF NOT EXISTS role_scope_grants (
   id TEXT PRIMARY KEY,
   role_assignment_id TEXT NOT NULL REFERENCES role_assignments(id) ON DELETE RESTRICT,
@@ -85,8 +101,14 @@ CREATE TRIGGER IF NOT EXISTS trg_scope_grant_human_activator_insert
 BEFORE INSERT ON role_scope_grants
 FOR EACH ROW
 WHEN NEW.grant_status = 'active'
-AND NOT EXISTS (SELECT 1 FROM people WHERE id=NEW.granted_by AND person_type='human' AND status='active')
-BEGIN SELECT RAISE(ABORT, 'scope grant activation requires an active human'); END;
+AND (
+  NOT EXISTS (SELECT 1 FROM people WHERE id=NEW.granted_by AND person_type='human' AND status='active')
+  OR NOT EXISTS (
+    SELECT 1 FROM role_assignments ra JOIN people p ON p.id=ra.person_id
+    WHERE ra.id=NEW.role_assignment_id AND p.status='active'
+  )
+)
+BEGIN SELECT RAISE(ABORT, 'scope grant activation requires an active human approver and active role member'); END;
 
 CREATE TRIGGER IF NOT EXISTS trg_scope_grant_human_activator_update
 BEFORE UPDATE OF grant_status, granted_by ON role_scope_grants
@@ -203,6 +225,13 @@ OR NOT EXISTS (
   WHERE id = NEW.approval_id AND decision = 'approved' AND approver_id = NEW.approved_by
 )
 BEGIN SELECT RAISE(ABORT, 'approval control requires an approved decision by an active human'); END;
+
+
+CREATE TRIGGER IF NOT EXISTS trg_approval_control_unconsumed_insert
+BEFORE INSERT ON approval_controls
+FOR EACH ROW
+WHEN NEW.consumed_at IS NOT NULL OR NEW.consumed_by IS NOT NULL
+BEGIN SELECT RAISE(ABORT, 'approval control must be created unconsumed'); END;
 
 CREATE TRIGGER IF NOT EXISTS trg_approval_control_immutable_update
 BEFORE UPDATE OF approval_id, permission_key, resource_type, resource_id, environment,
