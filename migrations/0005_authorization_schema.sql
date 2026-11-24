@@ -4,9 +4,26 @@
 
 PRAGMA foreign_keys = ON;
 
+CREATE TABLE IF NOT EXISTS module_catalogue (
+  module_key TEXT PRIMARY KEY,
+  description TEXT NOT NULL
+);
+
+INSERT OR IGNORE INTO module_catalogue (module_key, description) VALUES
+('EXEC','CEO executive overview and approvals'),
+('HR','Organization and virtual role administration'),
+('PMO','Projects, tasks, milestones, dependencies and risks'),
+('QA','Test cases, evidence and defects'),
+('FIN','Budgets and financial reporting'),
+('OPS','Operational workflows and support'),
+('SEC','Security, privacy and audit'),
+('DOC','Documents and knowledge base'),
+('REL','Release planning and readiness'),
+('SHARE','Scoped dashboard share management');
+
 CREATE TABLE IF NOT EXISTS permission_catalogue (
   permission_key TEXT PRIMARY KEY,
-  module_key TEXT NOT NULL,
+  module_key TEXT NOT NULL REFERENCES module_catalogue(module_key) ON DELETE RESTRICT,
   action_key TEXT NOT NULL CHECK (action_key IN ('read','draft','propose','test','approve','execute')),
   description TEXT NOT NULL,
   is_sensitive INTEGER NOT NULL DEFAULT 0 CHECK (is_sensitive IN (0,1)),
@@ -14,20 +31,14 @@ CREATE TABLE IF NOT EXISTS permission_catalogue (
   UNIQUE (module_key, action_key)
 );
 
--- Catalogue only. Creating a catalogue entry does not grant it to any role.
+-- Catalogue entries are definitions, not grants.
 INSERT OR IGNORE INTO permission_catalogue
   (permission_key, module_key, action_key, description, is_sensitive)
 SELECT
-  module_key || '.' || action_key,
-  module_key,
-  action_key,
-  module_key || ' module ' || action_key || ' permission (policy catalogue only)',
+  module_key || '.' || action_key, module_key, action_key,
+  module_key || ' module ' || action_key || ' permission (catalogue only)',
   CASE WHEN action_key IN ('approve','execute') OR module_key IN ('FIN','SEC','SHARE') THEN 1 ELSE 0 END
-FROM
-  (SELECT 'EXEC' AS module_key UNION ALL SELECT 'HR' UNION ALL SELECT 'PMO'
-   UNION ALL SELECT 'QA' UNION ALL SELECT 'FIN' UNION ALL SELECT 'OPS'
-   UNION ALL SELECT 'SEC' UNION ALL SELECT 'DOC' UNION ALL SELECT 'REL'
-   UNION ALL SELECT 'SHARE') AS modules
+FROM module_catalogue
 CROSS JOIN
   (SELECT 'read' AS action_key UNION ALL SELECT 'draft' UNION ALL SELECT 'propose'
    UNION ALL SELECT 'test' UNION ALL SELECT 'approve' UNION ALL SELECT 'execute') AS actions;
@@ -35,8 +46,8 @@ CROSS JOIN
 CREATE TABLE IF NOT EXISTS role_permission_rules (
   id TEXT PRIMARY KEY,
   role_id TEXT NOT NULL REFERENCES roles(id) ON DELETE RESTRICT,
-  module_key TEXT NOT NULL,
-  action_key TEXT NOT NULL,
+  module_key TEXT NOT NULL REFERENCES module_catalogue(module_key) ON DELETE RESTRICT,
+  action_key TEXT NOT NULL CHECK (action_key IN ('read','draft','propose','test','approve','execute')),
   effect TEXT NOT NULL CHECK (effect IN ('allow','deny')),
   requires_scope INTEGER NOT NULL DEFAULT 1 CHECK (requires_scope IN (0,1)),
   policy_note TEXT,
@@ -50,7 +61,7 @@ CREATE TABLE IF NOT EXISTS role_permission_rules (
 CREATE TABLE IF NOT EXISTS role_scope_grants (
   id TEXT PRIMARY KEY,
   role_assignment_id TEXT NOT NULL REFERENCES role_assignments(id) ON DELETE RESTRICT,
-  module_key TEXT NOT NULL,
+  module_key TEXT NOT NULL REFERENCES module_catalogue(module_key) ON DELETE RESTRICT,
   scope_type TEXT NOT NULL CHECK (scope_type IN ('company','department','project','record')),
   scope_id TEXT,
   grant_status TEXT NOT NULL DEFAULT 'pending'
@@ -66,9 +77,23 @@ CREATE TABLE IF NOT EXISTS role_scope_grants (
   ),
   CHECK (
     (grant_status = 'active' AND granted_at IS NOT NULL AND granted_by IS NOT NULL) OR
-    (grant_status <> 'active')
+    grant_status <> 'active'
   )
 );
+
+CREATE TRIGGER IF NOT EXISTS trg_scope_grant_human_activator_insert
+BEFORE INSERT ON role_scope_grants
+FOR EACH ROW
+WHEN NEW.grant_status = 'active'
+AND NOT EXISTS (SELECT 1 FROM people WHERE id=NEW.granted_by AND person_type='human' AND status='active')
+BEGIN SELECT RAISE(ABORT, 'scope grant activation requires an active human'); END;
+
+CREATE TRIGGER IF NOT EXISTS trg_scope_grant_human_activator_update
+BEFORE UPDATE OF grant_status, granted_by ON role_scope_grants
+FOR EACH ROW
+WHEN NEW.grant_status = 'active'
+AND NOT EXISTS (SELECT 1 FROM people WHERE id=NEW.granted_by AND person_type='human' AND status='active')
+BEGIN SELECT RAISE(ABORT, 'scope grant activation requires an active human'); END;
 
 CREATE TABLE IF NOT EXISTS auth_users (
   id TEXT PRIMARY KEY,
@@ -84,6 +109,15 @@ CREATE TABLE IF NOT EXISTS auth_users (
   UNIQUE (auth_provider, provider_subject)
 );
 
+-- This company has one human member; virtual roster entries must never become login identities.
+CREATE TRIGGER IF NOT EXISTS trg_auth_user_human_insert
+BEFORE INSERT ON auth_users
+FOR EACH ROW
+WHEN NOT EXISTS (
+  SELECT 1 FROM people WHERE id=NEW.person_id AND person_type='human' AND status='active'
+)
+BEGIN SELECT RAISE(ABORT, 'authentication identity requires an active human member'); END;
+
 CREATE TABLE IF NOT EXISTS auth_sessions (
   id TEXT PRIMARY KEY,
   auth_user_id TEXT NOT NULL REFERENCES auth_users(id) ON DELETE CASCADE,
@@ -98,6 +132,12 @@ CREATE TABLE IF NOT EXISTS auth_sessions (
   user_agent_summary TEXT,
   CHECK (expires_at > issued_at)
 );
+
+CREATE TRIGGER IF NOT EXISTS trg_auth_session_active_user_insert
+BEFORE INSERT ON auth_sessions
+FOR EACH ROW
+WHEN NOT EXISTS (SELECT 1 FROM auth_users WHERE id=NEW.auth_user_id AND account_status='active')
+BEGIN SELECT RAISE(ABORT, 'session requires an active authentication account'); END;
 
 CREATE TABLE IF NOT EXISTS dashboard_share_tokens (
   id TEXT PRIMARY KEY,
@@ -117,7 +157,6 @@ CREATE TABLE IF NOT EXISTS dashboard_share_tokens (
   CHECK (expires_at <= datetime(created_at, '+7 days'))
 );
 
--- A share link is created only by an active human member (the CEO in this company).
 CREATE TRIGGER IF NOT EXISTS trg_share_token_human_creator_insert
 BEFORE INSERT ON dashboard_share_tokens
 FOR EACH ROW
@@ -125,9 +164,13 @@ WHEN NOT EXISTS (
   SELECT 1 FROM people
   WHERE id = NEW.created_by AND person_type = 'human' AND status = 'active'
 )
-BEGIN
-  SELECT RAISE(ABORT, 'share token creator must be an active human');
-END;
+BEGIN SELECT RAISE(ABORT, 'share token creator must be an active human'); END;
+
+CREATE TRIGGER IF NOT EXISTS trg_share_token_immutable_update
+BEFORE UPDATE OF token_hash, dashboard_key, allowed_fields_json, filters_json,
+  created_by, created_at, expires_at, max_access_count ON dashboard_share_tokens
+FOR EACH ROW
+BEGIN SELECT RAISE(ABORT, 'share token scope and expiry are immutable; revoke and replace'); END;
 
 CREATE TABLE IF NOT EXISTS approval_controls (
   id TEXT PRIMARY KEY,
@@ -148,7 +191,6 @@ CREATE TABLE IF NOT EXISTS approval_controls (
          (consumed_at IS NOT NULL AND consumed_by IS NOT NULL))
 );
 
--- A recorded approval must point to an approved legacy approval row and a human approver.
 CREATE TRIGGER IF NOT EXISTS trg_approval_control_human_approver_insert
 BEFORE INSERT ON approval_controls
 FOR EACH ROW
@@ -160,21 +202,25 @@ OR NOT EXISTS (
   SELECT 1 FROM approvals
   WHERE id = NEW.approval_id AND decision = 'approved' AND approver_id = NEW.approved_by
 )
-BEGIN
-  SELECT RAISE(ABORT, 'approval control requires an approved decision by an active human');
-END;
+BEGIN SELECT RAISE(ABORT, 'approval control requires an approved decision by an active human'); END;
 
-CREATE TRIGGER IF NOT EXISTS trg_approval_control_human_consumer_update
-BEFORE UPDATE OF consumed_by ON approval_controls
+CREATE TRIGGER IF NOT EXISTS trg_approval_control_immutable_update
+BEFORE UPDATE OF approval_id, permission_key, resource_type, resource_id, environment,
+  payload_sha256, approved_by, approved_at, expires_at ON approval_controls
 FOR EACH ROW
-WHEN NEW.consumed_by IS NOT NULL
-AND NOT EXISTS (
-  SELECT 1 FROM people
-  WHERE id = NEW.consumed_by AND person_type = 'human' AND status = 'active'
-)
-BEGIN
-  SELECT RAISE(ABORT, 'approval control consumer must be an active human');
-END;
+BEGIN SELECT RAISE(ABORT, 'approval binding is immutable; create a new approval control'); END;
+
+CREATE TRIGGER IF NOT EXISTS trg_approval_control_one_time_consume
+BEFORE UPDATE OF consumed_at, consumed_by ON approval_controls
+FOR EACH ROW
+WHEN OLD.consumed_at IS NOT NULL
+  OR NEW.consumed_at IS NULL
+  OR NEW.consumed_by IS NULL
+  OR NOT EXISTS (
+    SELECT 1 FROM people
+    WHERE id = NEW.consumed_by AND person_type = 'human' AND status = 'active'
+  )
+BEGIN SELECT RAISE(ABORT, 'approval control can be consumed once by an active human'); END;
 
 CREATE INDEX IF NOT EXISTS idx_permission_rules_role
   ON role_permission_rules(role_id, module_key, action_key, effect);
