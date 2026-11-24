@@ -17,12 +17,12 @@
 - No permission grants or scope grants are seeded; all protected access remains denied until explicitly provisioned and reviewed.
 - Virtual actors are denied `approve` and `execute`.
 - Fresh MFA (10 minutes) is required for approve/execute and HR/FIN/SEC/REL/SHARE actions.
-- Audit write failure causes the request path to fail closed where authorization is being evaluated.
+- Audit write failure causes the authorization call path to throw; route handlers must translate that failure into a 503 and never continue with the protected operation.
 - No-login share tokens and approval execution are not exposed as endpoints.
 
 ## Test status
 
-The test suite is authored but must be run in a local Node.js environment. No test run is claimed in this commit. D1 integration and full migration replay remain pending.
+The test suite is authored and a GitHub Actions workflow now runs the Node syntax checks and unit tests on relevant pushes and pull requests. A successful CI run has not yet been verified in this phase. D1 integration and full migration replay remain pending.
 
 ## Known limitations before staging
 
@@ -33,8 +33,9 @@ The test suite is authored but must be run in a local Node.js environment. No te
 5. Add route-specific policies and integration tests before adding any business endpoint.
 6. Add atomic share-token access counting and read-only field filtering before enabling no-login links.
 7. Add an immutable audit strategy and operational retention/backup controls.
-8. Review MFA timestamp parsing and D1 timestamp formats in integration tests.
+8. Verify MFA timestamp parsing against actual D1 timestamp formats in integration tests.
 9. Verify full migrations 0001–0005 against disposable D1 before staging.
+10. Add tests proving permission rules and scope grants must belong to the same active role assignment.
 
 ## Not done
 
