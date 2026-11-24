@@ -5,6 +5,8 @@ on:
     branches: [foundation/phase-0]
     paths:
       - "worker/**"
+      - "migrations/**"
+      - "scripts/**"
       - ".github/workflows/worker-tests.yml"
   pull_request:
     paths:
