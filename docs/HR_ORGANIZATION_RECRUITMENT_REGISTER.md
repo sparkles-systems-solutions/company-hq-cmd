@@ -131,9 +131,9 @@ The earlier recruitment-status screenshot is a planning snapshot. The current so
 | Group | Current verified status | What remains |
 |---|---|---|
 | Founder / CEO | Confirmed human member; final authority | No recruitment action |
-| CTO | Virtual role is defined and included in the proposed virtual-member onboarding batch; prior simulated interview and appointment letter are planning artifacts only | Individual practical capability validation, permission review, workflow validation, live activation |
+| CTO | Virtual role is defined; Batch 01 supervised scenario assessment prepared with provisional suitability result | CEO review, repeatable workflow validation, permission review, live activation |
 | Virtual AI Legal Advisor | Role profile and proposed migration registration are prepared | Individual capability validation, permission review, workflow validation, live activation; human Sri Lankan lawyer review for material legal matters |
-| Other 39 virtual roles | Role profiles and virtual-member records are included in the proposed onboarding migration | Individual capability validation, permission review, workflow validation, live activation |
+| GM, COO, CFO | Batch 01 supervised scenario assessment prepared with provisional suitability results | CEO review, repeatable workflow validation, permission review, live activation |\n| Other 37 virtual roles (including Legal Advisor) | Role profiles and virtual-member records are included in the proposed onboarding migration | Individual capability validation, permission review, workflow validation, live activation |
 
 **Important registration distinction:** The 41 virtual member records and company-scoped role assignments exist as SQL migration source on the GitHub feature branch. They have not been applied to a live D1 database. Therefore, this is source-level provisioning, not completed live CMD registration and not operational activation.
 
@@ -149,6 +149,8 @@ The earlier recruitment-status screenshot is a planning snapshot. The current so
 6. Release, Operations, Support and Documentation roles.
 
 This order is a proposed execution sequence, not evidence that any role has passed assessment. A role may move to Active only after its evidence is recorded and required controls are satisfied.
+
+**Executive Batch 01 evidence:** [Executive Team Batch 01 Capability Assessment](EXECUTIVE_TEAM_BATCH01_CAPABILITY_ASSESSMENT.md). The four work samples were prepared and reviewed in this ChatGPT environment. Their outcomes are provisional suitability for supervised AI assistance only; none of the four roles is marked Active.
 
 ## 6. Current overall assessment
 
@@ -166,7 +168,7 @@ This order is a proposed execution sequence, not evidence that any role has pass
 |---|---|---|
 | Role profile | Completed | All 41 roles are documented in this register |
 | CEO batch authorization | Completed | CEO instructed HR to proceed with the virtual-team onboarding batch |
-| Individual capability assessment | Pending | Must be assessed and evidenced per role; do not invent interviews |
+| Individual capability assessment | In progress | Executive Batch 01 scenario work samples documented; CEO review and repeatable workflow validation pending; remaining roles not yet assessed |
 | Least-privilege permission review | Pending | Access must be scoped before credentials or system access are granted |
 | Workflow validation | Pending | Each role's outputs and handoffs must be tested |
 | Live operational activation | Pending | Requires deployed CMD, applied migrations, and acceptance checks |
