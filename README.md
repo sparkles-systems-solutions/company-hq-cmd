@@ -41,6 +41,8 @@ Phase 0 foundation is being prepared on `foundation/phase-0`. This is not yet a 
 - [CMD role permission and data access matrix](docs/ROLE_PERMISSION_DATA_ACCESS_MATRIX.md)
 - [Authorization model and API enforcement design](docs/AUTHORIZATION_MODEL_API_ENFORCEMENT.md)
 - [Phase 4 authorization schema and migration validation](docs/PHASE4_MIGRATION_VALIDATION.md)
+- [Phase 5 Worker authorization foundation](docs/PHASE5_WORKER_AUTHORIZATION.md)
+- [Worker source and local test instructions](worker/README.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Workflow and approvals](docs/WORKFLOW.md)
 
@@ -59,4 +61,4 @@ Phase 0 foundation is being prepared on `foundation/phase-0`. This is not yet a 
 - [Virtual AI member onboarding migration](migrations/0004_virtual_ai_member_onboarding.sql)
 - [Authorization schema migration draft](migrations/0005_authorization_schema.sql)
 
-All migrations are source files only until reviewed and applied to a designated test database. No live D1 activation is claimed.
+All migrations are source files only until reviewed and applied to a designated test database. No live D1 activation is claimed. The Worker authorization scaffold is not deployed; it exposes only health and authenticated identity endpoints and has no business CRUD or execution routes.
