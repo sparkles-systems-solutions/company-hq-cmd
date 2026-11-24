@@ -89,7 +89,9 @@ async function authenticate(request, env, requestId) {
 
 function isFreshMfa(value) {
   if (!value) return false;
-  const timestamp = Date.parse(value.replace(" ", "T") + (value.endsWith("Z") ? "" : "Z"));
+  const normalized = value.includes("T") ? value : value.replace(" ", "T");
+  const hasTimezone = /(?:Z|[+-]\\d{2}:?\\d{2})$/i.test(normalized);
+  const timestamp = Date.parse(normalized + (hasTimezone ? "" : "Z"));
   return Number.isFinite(timestamp) &&
     timestamp <= Date.now() + 30_000 &&
     Date.now() - timestamp <= MFA_MAX_AGE_SECONDS * 1000;
@@ -149,46 +151,41 @@ export async function authorizeActor(db, actor, permissionRequest, requestId) {
   const placeholders = roleIds.map(() => "?").join(",");
   const bindings = [...roleIds, permissionRequest.module, permissionRequest.action];
 
-  const policyRows = await db.prepare(`
-    SELECT role_id, effect
-      FROM role_permission_rules
-     WHERE role_id IN (${placeholders})
-       AND module_key = ?
-       AND action_key = ?
-  `).bind(...bindings).all();
-
-  const policies = policyRows.results || [];
+  const policies = (policyRows.results || []);
   const hasDeny = policies.some((p) => p.effect === "deny");
-  const hasAllow = policies.some((p) => p.effect === "allow");
 
-  let hasScopedAllow = false;
-  if (hasAllow) {
-    const scopeRows = await db.prepare(`
-      SELECT 1
-        FROM role_scope_grants g
-        JOIN role_assignments ra ON ra.id = g.role_assignment_id
-       WHERE ra.person_id = ?
-         AND ra.role_id IN (${placeholders})
-         AND g.module_key = ?
-         AND g.grant_status = 'active'
-         AND (g.expires_at IS NULL OR g.expires_at > CURRENT_TIMESTAMP)
-         AND (
-           (g.scope_type = 'company' AND g.scope_id IS NULL)
-           OR (g.scope_type = ? AND g.scope_id = ?)
-         )
-       LIMIT 1
-    `).bind(
-      actor.personId, ...roleIds, permissionRequest.module,
-      permissionRequest.scopeType, permissionRequest.scopeId
-    ).first();
-    hasScopedAllow = Boolean(scopeRows);
-  }
+  // Bind the permission rule to the exact same role assignment that owns the scope grant.
+  // This prevents permission on one role being combined with another role's scope.
+  const scopedAllow = await db.prepare(`
+    SELECT 1
+      FROM role_scope_grants g
+      JOIN role_assignments ra ON ra.id = g.role_assignment_id
+      JOIN role_permission_rules pr
+        ON pr.role_id = ra.role_id
+       AND pr.module_key = g.module_key
+       AND pr.action_key = ?
+       AND pr.effect = 'allow'
+     WHERE ra.person_id = ?
+       AND ra.role_id IN (${placeholders})
+       AND (ra.expires_at IS NULL OR ra.expires_at > CURRENT_TIMESTAMP)
+       AND g.module_key = ?
+       AND g.grant_status = 'active'
+       AND (g.expires_at IS NULL OR g.expires_at > CURRENT_TIMESTAMP)
+       AND (
+         (g.scope_type = 'company' AND g.scope_id IS NULL)
+         OR (g.scope_type = ? AND g.scope_id = ?)
+       )
+     LIMIT 1
+  `).bind(
+    permissionRequest.action, actor.personId, ...roleIds,
+    permissionRequest.module, permissionRequest.scopeType, permissionRequest.scopeId
+  ).first();
 
   const decision = evaluateRolePolicy({
     personType: actor.personType,
     action: permissionRequest.action,
     hasExplicitDeny: hasDeny,
-    hasScopedAllow: hasAllow && hasScopedAllow
+    hasScopedAllow: Boolean(scopedAllow)
   });
 
   await audit(db, {
