@@ -124,6 +124,32 @@ For each virtual role, HR should maintain these separate checkpoints:
 
 No simulated interview, appointment, database registration, or test may be reported as completed unless evidence exists.
 
+## 5A. Current status clarification and next onboarding sequence
+
+The earlier recruitment-status screenshot is a planning snapshot. The current source-control register and proposed migrations provide the more detailed status below:
+
+| Group | Current verified status | What remains |
+|---|---|---|
+| Founder / CEO | Confirmed human member; final authority | No recruitment action |
+| CTO | Virtual role is defined and included in the proposed virtual-member onboarding batch; prior simulated interview and appointment letter are planning artifacts only | Individual practical capability validation, permission review, workflow validation, live activation |
+| Virtual AI Legal Advisor | Role profile and proposed migration registration are prepared | Individual capability validation, permission review, workflow validation, live activation; human Sri Lankan lawyer review for material legal matters |
+| Other 39 virtual roles | Role profiles and virtual-member records are included in the proposed onboarding migration | Individual capability validation, permission review, workflow validation, live activation |
+
+**Important registration distinction:** The 41 virtual member records and company-scoped role assignments exist as SQL migration source on the GitHub feature branch. They have not been applied to a live D1 database. Therefore, this is source-level provisioning, not completed live CMD registration and not operational activation.
+
+**Recruitment vs onboarding:** The company has approved the virtual-role onboarding batch. No additional human recruitment is planned under the current company model. The remaining work is role-by-role virtual capability assessment, least-privilege permission review, workflow testing, and eventual live activation after the CMD platform is deployed and accepted.
+
+### Onboarding order
+
+1. Executive coordination: GM, COO, CTO, CFO.
+2. HR, PMO and Product roles.
+3. Architecture, Engineering, Database, Cloud, DevOps and ICT roles.
+4. QA and UAT roles.
+5. Cybersecurity, Privacy, Risk and Legal roles.
+6. Release, Operations, Support and Documentation roles.
+
+This order is a proposed execution sequence, not evidence that any role has passed assessment. A role may move to Active only after its evidence is recorded and required controls are satisfied.
+
 ## 6. Current overall assessment
 
 - The company-wide policy is established: CEO is the only human member; all other roles are virtual AI members.
