@@ -114,8 +114,14 @@ CREATE TRIGGER IF NOT EXISTS trg_scope_grant_human_activator_update
 BEFORE UPDATE OF grant_status, granted_by ON role_scope_grants
 FOR EACH ROW
 WHEN NEW.grant_status = 'active'
-AND NOT EXISTS (SELECT 1 FROM people WHERE id=NEW.granted_by AND person_type='human' AND status='active')
-BEGIN SELECT RAISE(ABORT, 'scope grant activation requires an active human'); END;
+AND (
+  NOT EXISTS (SELECT 1 FROM people WHERE id=NEW.granted_by AND person_type='human' AND status='active')
+  OR NOT EXISTS (
+    SELECT 1 FROM role_assignments ra JOIN people p ON p.id=ra.person_id
+    WHERE ra.id=NEW.role_assignment_id AND p.status='active'
+  )
+)
+BEGIN SELECT RAISE(ABORT, 'scope grant activation requires an active human approver and active role member'); END;
 
 CREATE TABLE IF NOT EXISTS auth_users (
   id TEXT PRIMARY KEY,
