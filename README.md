@@ -38,6 +38,7 @@ Phase 0 foundation is being prepared on `foundation/phase-0`. This is not yet a 
 See:
 - [Architecture](docs/ARCHITECTURE.md)
 - [Roles and permissions](docs/ROLES_AND_PERMISSIONS.md)
+- [CMD role permission and data access matrix](docs/ROLE_PERMISSION_DATA_ACCESS_MATRIX.md)
 - [Virtual AI Legal Advisor role profile](docs/LEGAL_ADVISOR_ROLE.md)
 - [Company HR and virtual AI recruitment register](docs/HR_ORGANIZATION_RECRUITMENT_REGISTER.md)
 - [Virtual AI capability assessment](docs/VIRTUAL_AI_CAPABILITY_ASSESSMENT.md)
