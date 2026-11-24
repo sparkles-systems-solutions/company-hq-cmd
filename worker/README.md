@@ -1,0 +1,42 @@
+# CMD Worker Authorization Foundation
+
+This folder contains a deliberately limited Cloudflare Worker foundation for CMD authorization.
+
+## Implemented in this phase
+
+- Opaque session-cookie lookup using SHA-256 token hashes.
+- Server-side active human identity and session checks.
+- Deny-by-default role permission and scoped-grant evaluator.
+- Explicit deny overrides allow.
+- Fresh MFA gate for privileged actions/modules.
+- Virtual actor approval/execute prohibition in the policy evaluator.
+- Append-only authorization audit events using the existing `audit_logs` table.
+- Minimal `GET /api/health` and authenticated `GET /api/me` endpoints.
+- Unknown API routes return 404; no CRUD, login, token issuance, or execution endpoints exist.
+
+## Not production-ready
+
+No login/OTP provider, MFA enrollment, session issuance/rotation, D1 binding configuration, deployment config, permission seeds, scoped grants, share-link endpoint, approval execution endpoint, or production secrets are included. The worker intentionally cannot issue a session or execute a business operation.
+
+## Local checks
+
+From this directory:
+
+```sh
+npm test
+npm run check
+```
+
+Tests use Node's built-in test runner and do not require third-party packages.
+
+## Integration requirements before staging
+
+1. Add a disposable D1 database and replay migrations 0001–0005 in order.
+2. Confirm the Worker D1 binding is named `DB`.
+3. Configure `ALLOWED_ORIGIN` to the exact approved frontend origin.
+4. Implement a reviewed human login provider and MFA enrollment/verification flow before issuing sessions.
+5. Add route-specific server-owned policy definitions; never derive permission requests from client JSON.
+6. Add integration tests for actual D1 queries, revocation, expiry, audit failures, CORS, and rate limiting.
+7. Keep share links and privileged execution disabled until separately reviewed.
+
+Do not deploy or connect production systems from this scaffold.
