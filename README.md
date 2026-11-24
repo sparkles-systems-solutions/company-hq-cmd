@@ -35,16 +35,26 @@ The CEO is the final authority. Financial commitments, real hiring, production r
 
 Phase 0 foundation is being prepared on `foundation/phase-0`. This is not yet a deployed or production-ready system. No live authentication, API, D1 database, or production workflow is claimed until implemented and tested.
 
-See:
-- [Architecture](docs/ARCHITECTURE.md)
+## Security design documents
+
 - [Roles and permissions](docs/ROLES_AND_PERMISSIONS.md)
 - [CMD role permission and data access matrix](docs/ROLE_PERMISSION_DATA_ACCESS_MATRIX.md)
+- [Authorization model and API enforcement design](docs/AUTHORIZATION_MODEL_API_ENFORCEMENT.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Workflow and approvals](docs/WORKFLOW.md)
+
+## Organization and governance documents
+
 - [Virtual AI Legal Advisor role profile](docs/LEGAL_ADVISOR_ROLE.md)
 - [Company HR and virtual AI recruitment register](docs/HR_ORGANIZATION_RECRUITMENT_REGISTER.md)
 - [Virtual AI capability assessment](docs/VIRTUAL_AI_CAPABILITY_ASSESSMENT.md)
-- [Workflow and approvals](docs/WORKFLOW.md)
 - [Roadmap](docs/ROADMAP.md)
-- [Database migration](migrations/0001_initial.sql)
+
+## Database migrations (draft source)
+
+- [Initial database schema](migrations/0001_initial.sql)
 - [Virtual AI Legal Advisor seed migration](migrations/0002_virtual_legal_advisor.sql)
 - [Virtual AI role catalogue migration](migrations/0003_virtual_ai_role_catalogue.sql)
 - [Virtual AI member onboarding migration](migrations/0004_virtual_ai_member_onboarding.sql)
+
+All migrations are source files only until reviewed and applied to a designated test database. No live D1 activation is claimed.
