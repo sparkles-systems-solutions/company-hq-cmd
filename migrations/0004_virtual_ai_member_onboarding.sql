@@ -201,10 +201,10 @@ INSERT OR IGNORE INTO role_assignments (id, person_id, role_id, scope_type, scop
 VALUES ('assignment-virtual-risk-compliance', 'member-virtual-risk-compliance', 'role-risk-compliance', 'company', NULL, NULL);
 
 INSERT OR IGNORE INTO people (id, display_name, email, person_type, department_id, status)
-VALUES ('member-virtual-legal-advisor', 'Virtual AI Legal Advisor', 'virtual.legal-advisor@members.invalid', 'virtual', 'dept-legal-compliance', 'pending');
+VALUES ('member-virtual-ai-legal-advisor', 'Virtual AI Legal Advisor', 'virtual.legal-advisor@members.invalid', 'virtual', 'dept-legal-compliance', 'pending');
 
 INSERT OR IGNORE INTO role_assignments (id, person_id, role_id, scope_type, scope_id, assigned_by)
-VALUES ('assignment-virtual-legal-advisor', 'member-virtual-legal-advisor', 'role-virtual-ai-legal-advisor', 'company', NULL, NULL);
+VALUES ('assignment-virtual-ai-legal-advisor', 'member-virtual-ai-legal-advisor', 'role-virtual-ai-legal-advisor', 'company', NULL, NULL);
 
 INSERT OR IGNORE INTO people (id, display_name, email, person_type, department_id, status)
 VALUES ('member-virtual-release-manager', 'Release Manager', 'virtual.release-manager@members.invalid', 'virtual', 'dept-release-operations', 'pending');
