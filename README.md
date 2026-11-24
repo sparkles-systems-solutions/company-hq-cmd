@@ -11,7 +11,7 @@ This repository is **public by CEO decision**. It contains source code, technica
 Company HQ CMD is the internal operating platform for the AI + Human Hybrid Team. It will provide:
 
 - CEO executive overview and approval queue
-- Organization, departments, roles, and role assignments
+- Organization, departments, roles, and role assignments (CEO is the only human member; all other roles are virtual AI members)
 - Project portfolio, milestones, tasks, risks, and dependencies
 - QA, UAT, defects, release readiness, and audit history
 - Budget requests and management reporting
@@ -38,6 +38,8 @@ Phase 0 foundation is being prepared on `foundation/phase-0`. This is not yet a 
 See:
 - [Architecture](docs/ARCHITECTURE.md)
 - [Roles and permissions](docs/ROLES_AND_PERMISSIONS.md)
+- [Virtual AI Legal Advisor role profile](docs/LEGAL_ADVISOR_ROLE.md)
 - [Workflow and approvals](docs/WORKFLOW.md)
 - [Roadmap](docs/ROADMAP.md)
 - [Database migration](migrations/0001_initial.sql)
+- [Virtual AI Legal Advisor seed migration](migrations/0002_virtual_legal_advisor.sql)
