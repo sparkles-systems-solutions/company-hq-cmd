@@ -22,7 +22,7 @@
 
 ## Test status
 
-The test suite is authored and a GitHub Actions workflow now runs the Node syntax checks and unit tests on relevant pushes and pull requests. A successful CI run has not yet been verified in this phase. D1 integration and full migration replay remain pending.
+GitHub Actions run `45457728771` (run #3) completed successfully on the current PR head. Both the `Syntax check` and `Unit tests` steps passed. This confirms JavaScript syntax and the isolated policy unit tests only; it does not validate D1 queries, full migration replay, or deployed Worker behavior. D1 integration and full migration replay remain pending.
 
 ## Known limitations before staging
 
