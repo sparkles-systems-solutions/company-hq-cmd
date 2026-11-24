@@ -47,5 +47,10 @@ For Sri Lankan legal matters, identify the applicable Sri Lankan law and recomme
 - QA sign-off must remain independent of the developer responsible for the change.
 - Security-sensitive and production actions require explicit authorized approval.
 - Virtual AI roles may prepare recommendations and drafts; they do not become human employees and cannot exercise real-world authority.
+- Virtual AI roles never receive approval (A) or execution (X) permissions in the proposed CMD model.
+- No role receives live access merely because it appears in the role catalogue. Activation requires scoped permission review, workflow testing, audit validation, and explicit CEO authorization.
+- A no-login dashboard share is permitted only as a narrow, read-only, expiring and revocable token with field-level scope and audit logging; it is not an unrestricted authentication bypass.
+
+The detailed proposed module/action matrix, data classifications, separation-of-duties rules, no-login share controls, and activation checklist are documented in [CMD Role Permission & Data Access Matrix](ROLE_PERMISSION_DATA_ACCESS_MATRIX.md).
 
 The initial database role catalogue is descriptive only. API authorization middleware must enforce these rules before the system is used with real data.
