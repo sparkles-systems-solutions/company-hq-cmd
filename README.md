@@ -44,6 +44,7 @@ Phase 0 foundation is being prepared on `foundation/phase-0`. This is not yet a 
 - [Phase 5 Worker authorization foundation](docs/PHASE5_WORKER_AUTHORIZATION.md)
 - [Executive Team Batch 01 capability assessment](docs/EXECUTIVE_TEAM_BATCH01_CAPABILITY_ASSESSMENT.md)
 - [Disposable migration replay and safety validation](scripts/validate_migrations.py)
+- [Phase 6 migration replay validation report](docs/PHASE6_MIGRATION_REPLAY_VALIDATION.md)
 - [Worker source and local test instructions](worker/README.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Workflow and approvals](docs/WORKFLOW.md)
