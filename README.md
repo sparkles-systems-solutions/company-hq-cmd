@@ -40,6 +40,7 @@ See:
 - [Roles and permissions](docs/ROLES_AND_PERMISSIONS.md)
 - [Virtual AI Legal Advisor role profile](docs/LEGAL_ADVISOR_ROLE.md)
 - [Company HR and virtual AI recruitment register](docs/HR_ORGANIZATION_RECRUITMENT_REGISTER.md)
+- [Virtual AI capability assessment](docs/VIRTUAL_AI_CAPABILITY_ASSESSMENT.md)
 - [Workflow and approvals](docs/WORKFLOW.md)
 - [Roadmap](docs/ROADMAP.md)
 - [Database migration](migrations/0001_initial.sql)
