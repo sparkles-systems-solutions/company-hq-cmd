@@ -132,3 +132,7 @@ No choice is made by this review. These decisions should be recorded in the cano
 ## Batch 12 reconciliation status
 
 The canonical recommendation and pending decision table are now recorded in [AUTHENTICATION_PROTOCOL_DECISIONS.md](./AUTHENTICATION_PROTOCOL_DECISIONS.md). The recommendation is direct bearer-token exchange, SameSite=Lax, double-submit CSRF for cookie-authenticated unsafe requests, and atomic session+success-audit persistence. This resolves the documentation conflict as a proposed direction, not as an approved implementation decision. CEO acceptance remains required. The existing exchange-key planner is not aligned to the recommendation and must be reconciled only after the decision is approved.
+
+## Batch 12 addendum — recommendation recorded, decision still pending
+
+The design reconciliation has now recorded a recommended direction in AUTHENTICATION_PROTOCOL_DECISIONS.md: direct bearer-token exchange rather than two-step exchange-key, SameSite=Lax session and CSRF cookies, double-submit CSRF on cookie-authenticated unsafe requests, and atomic session+success-audit persistence. These are recommendations, not CEO-approved decisions. The previous statement that no recommendation was made is superseded by this addendum; the CEO decision remains pending. The older two-step plan and exchange-key planner must not be implemented as-is. No runtime code or external environment was changed.
