@@ -46,6 +46,15 @@ test("NULL last_seen_at falls back to issued_at and does not count as recent act
   assert.deepEqual(events, ["session", "identity", "authorize", "data"]);
 });
 
+
+test("empty last_seen_at is malformed and fails closed", async () => {
+  const { deps, events } = harness({ row: validRow({ last_seen_at: "" }) });
+  const result = await runSessionPipelineContract(deps);
+  assert.equal(result.allowed, false);
+  assert.equal(result.reason, "invalid_timestamps");
+  assert.deepEqual(events, ["session", "identity", "audit:invalid_timestamps"]);
+});
+
 test("lifecycle denials never refresh, authorize, or read protected data", async (t) => {
   const scenarios = [
     ["revoked", { revoked_at: iso(NOW - 1) }, "revoked"],
