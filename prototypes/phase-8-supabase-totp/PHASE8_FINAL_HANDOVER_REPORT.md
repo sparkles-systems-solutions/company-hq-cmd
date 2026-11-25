@@ -51,5 +51,5 @@ Production deployment, real user activation, live D1 changes, real TOTP enrollme
 
 Added a dependency-free, pure session-exchange planner and adversarial synthetic tests. It validates the already-established upstream trust gates, verified Email + Password identity, AAL2/TOTP freshness, active-human mapping, browser mutation guard result, and one-time exchange-key hash/expiry state. It emits a non-secret plan only; it does not consume a key, write D1, issue a token/cookie, or integrate a route.
 
-This increment is newer than CI run #130. Do not treat its tests as CI-passed until a workflow run on the new code commit succeeds. The session exchange, atomic combined D1 write, cookie delivery, CSRF/CORS integration, runtime lifecycle enforcement, and remote D1 verification remain outstanding.
+This increment was validated by GitHub Actions run [#142](https://github.com/sparkles-systems-solutions/company-hq-cmd/actions/runs/45576892284), which passed syntax, unit, and disposable SQLite migration/safety checks on commit `d9a8005d08f04e0e64f8701b842b043b845897c0`. This does not establish end-to-end exchange, remote D1 semantics, or production readiness. The session exchange, atomic combined D1 write, cookie delivery, CSRF/CORS integration, runtime lifecycle enforcement, and remote D1 verification remain outstanding.
 
