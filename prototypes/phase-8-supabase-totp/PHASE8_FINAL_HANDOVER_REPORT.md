@@ -60,3 +60,12 @@ This increment was validated by GitHub Actions run [#142](https://github.com/spa
 Added two documentation-only controls: `CEO_NONPRODUCTION_PROJECT_APPROVAL_RECORD.md` and `NONPRODUCTION_SECRET_CUSTODY_CHECKLIST.md`. The approval record remains blank and marked NOT APPROVED / NOT CREATED. No Supabase project, secret, credential, identity, remote database, or deployment was created.
 
 The latest code-bearing CI evidence is GitHub Actions run [#144](https://github.com/sparkles-systems-solutions/company-hq-cmd/actions/runs/45585460944), successful on commit `2cf5e2ba02f296106e74845f1346629beead6534` for syntax, unit tests, and disposable SQLite migration/safety checks. Subsequent commits through the latest handover documentation changes are documentation-only; this run is not claimed as testing the latest docs head. PR #2 remains draft/open/unmerged and must not be merged without separate CEO approval.
+
+
+## Addendum — Batch 9 consistency and PR readiness audit
+
+The documentation audit reconciled outdated first-factor-undecided wording in `INTEGRATION_GAP_REVIEW.md`, `SESSION_LIFECYCLE.md`, and `SESSION_LIFECYCLE_ENFORCEMENT_DESIGN.md`. The recorded design decision is Email + Password with verified email and TOTP as the second factor. This does not authorize live provider sign-in or session exchange. `SESSION_EXCHANGE_ATOMICITY_DESIGN.md` now states the remaining separate integration approval gate.
+
+The final security review was refreshed with CI run [#144](https://github.com/sparkles-systems-solutions/company-hq-cmd/actions/runs/45585460944) and distinguishes the tested code commit `2cf5e2ba02f296106e74845f1346629beead6534` from subsequent documentation-only commits. PR #2 was inspected: Open, Draft, Unmerged; mergeable reported true. GitHub returned no submitted reviews and no inline review threads at the time of review. This is not an approval to mark ready or merge.
+
+No application code, schema, credentials, provider project, real identity, remote database, deployment, or PR merge was changed during Batch 9. The prototype remains not production-ready; runtime session lifecycle, session exchange, CSRF/CORS integration, protected routes, remote D1 verification, dashboard sharing, and operational security remain outstanding.
