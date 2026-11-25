@@ -44,3 +44,16 @@ export function isMfaFresh(verifiedAt, now = Date.now()) {
   if (verified === null || !Number.isFinite(now)) return false;
   return verified <= now + 30000 && now - verified <= SESSION_POLICY.mfaFreshnessSeconds * 1000;
 }
+
+/**
+ * Classifies the result of a conditional last-seen UPDATE.
+ * Callers must deny the request unless exactly one active session row changed.
+ * This helper performs no database operation and never treats errors as success.
+ */
+export function evaluateLastSeenRefreshResult(result, error = null) {
+  if (error) return { accepted: false, reason: "refresh_failed" };
+  if (!result || !result.meta || result.meta.changes !== 1) {
+    return { accepted: false, reason: "refresh_not_applied" };
+  }
+  return { accepted: true, reason: "refreshed" };
+}
