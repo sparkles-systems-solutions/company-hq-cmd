@@ -1,0 +1,45 @@
+name: Worker Authorization Tests
+
+on:
+  push:
+    branches: [foundation/phase-0]
+    paths:
+      - "worker/**"
+      - "migrations/**"
+      - "scripts/**"
+      - ".github/workflows/worker-tests.yml"
+  pull_request:
+    paths:
+      - "worker/**"
+      - "migrations/**"
+      - "scripts/**"
+      - ".github/workflows/worker-tests.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  worker-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install Worker test dependencies
+        working-directory: worker
+        run: npm install --no-audit --no-fund
+      - name: Syntax check
+        working-directory: worker
+        run: npm run check
+      - name: Unit tests
+        working-directory: worker
+        run: npm test
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Replay migrations in disposable SQLite and verify safety invariants
+        run: python scripts/validate_migrations.py
