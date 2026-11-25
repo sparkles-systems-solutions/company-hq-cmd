@@ -20,7 +20,10 @@ export function evaluateSessionLifecycle(session, now = Date.now()) {
   if (session.revokedAt) return { valid: false, reason: "revoked" };
   const issuedAt = toEpochMs(session.issuedAt);
   const expiresAt = toEpochMs(session.expiresAt);
-  const lastSeenAt = toEpochMs(session.lastSeenAt || session.issuedAt);
+  const lastSeenValue = session.lastSeenAt === null || session.lastSeenAt === undefined
+    ? session.issuedAt
+    : session.lastSeenAt;
+  const lastSeenAt = toEpochMs(lastSeenValue);
   if (issuedAt === null || expiresAt === null || lastSeenAt === null) return { valid: false, reason: "invalid_timestamps" };
   if (issuedAt > now + 30000) return { valid: false, reason: "issued_in_future" };
   if (expiresAt <= issuedAt || lastSeenAt < issuedAt) return { valid: false, reason: "invalid_timestamp_order" };
