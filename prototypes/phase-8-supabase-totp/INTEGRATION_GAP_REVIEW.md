@@ -1,6 +1,6 @@
 # Phase 8 — Isolated integration gap review
 
-**Status:** static source review only. No runtime wiring, database writes, deployment, or real identity activity.
+**Status:** static source review plus isolated Miniflare D1 contract tests. No runtime session wiring, production database writes, deployment, or real identity activity.
 
 ## Scope reviewed
 
@@ -9,6 +9,7 @@
 - `worker/src/request-security.js`
 - `worker/src/supabase-request-auth.js`
 - Existing Phase 8 README and session/request-boundary notes
+- Disposable Miniflare D1 batch atomicity and concurrent-claim tests
 
 ## Findings
 
@@ -26,15 +27,20 @@ The current `authenticate()` query checks that a session is not revoked, its abs
 
 ### 3. Session creation/rotation and audit atomicity remain unimplemented
 
-The current audit helper performs an individual insert. No session issuance or rotation transaction/batch is implemented in this prototype. The current request handler fails closed with a service-unavailable response when its authentication/authorization path throws, but transaction-level guarantees for future session creation, rotation, revocation, and audit writes have not been implemented or tested.
+The current audit helper performs an individual insert. No session issuance or rotation transaction/batch is implemented in this prototype. The current request handler fails closed with a service-unavailable response when its authentication/authorization path throws, but transaction-level guarantees for future session creation, rotation, revocation, and audit writes have not been implemented.
 
-**Required before session integration:** define atomic D1 operations for session creation/rotation/revocation and corresponding audit events; test audit insert failures, partial failures, replay/race conditions, and rollback/compensation behavior using disposable D1.
+**Test evidence (isolated only):**
+- The existing Miniflare D1 batch tests verify that paired session/audit inserts commit together and that a later constraint failure rolls back the earlier insert.
+- A new Miniflare D1 concurrency test submits two compare-and-set rotation claims against one active synthetic session and asserts exactly one winner. It deliberately does not create a replacement session or audit event, and is not a complete rotation implementation.
+- These are pinned Miniflare/disposable database simulations only. They do not verify remote Cloudflare D1 behavior, production concurrency, or an integrated CMD session-exchange route.
+
+**Still required before session integration:** define atomic D1 operations for session creation/rotation/revocation and corresponding audit events; test audit insert failures, partial failures, replay/race conditions, and rollback/compensation behavior using disposable D1. Verify the chosen atomicity semantics against the target Cloudflare D1 environment before relying on them.
 
 ### 4. Browser mutation guard remains a standalone utility
 
 `validateBrowserMutation()` checks configured Origin, optional Fetch Metadata, JSON content type, and a matching double-submit CSRF cookie/header. It is not wired into mutation routes and does not issue CSRF tokens. The current CORS allow-header list in `worker/src/index.js` does not yet include `x-cmd-csrf`, so a future browser client using that header would need a deliberate CORS update and preflight tests.
 
-**Required before browser session integration:** add a dedicated token-issuance design, wire the guard before every cookie-authenticated mutation, align CORS headers with the CSRF header, and test same-origin and cross-origin browser preflight/mutation cases.
+**Required before browser session integration:** add a dedicated token-issuance design, wire the guard before every cookie-authenticated mutation, align CORS headers with the CSRF header, and test same-origin and cross-origin browser preflight/mutation cases. No CORS behavior has been broadened in this safe test-only increment.
 
 ## Decisions and blockers
 
