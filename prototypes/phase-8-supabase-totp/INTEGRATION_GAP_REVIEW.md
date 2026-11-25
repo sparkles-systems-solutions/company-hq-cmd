@@ -95,3 +95,12 @@ Expanded `request-security.test.js` with synthetic boundary cases for short/over
 ### 8. Consolidated browser-boundary test batch
 
 The standalone browser mutation guard now has additional synthetic tests for malformed/short/oversized CSRF values, missing Fetch Metadata compatibility, multiple non-JSON content types, missing origin configuration, and case-insensitive safe methods. The package syntax-check script now checks every JavaScript source module. The CORS contract remains intentionally unchanged: `x-cmd-csrf` is not enabled and no mutation route is wired. CI must run against the consolidated branch head before these additions are marked verified.
+
+
+### 9. Session exchange atomicity adversarial tests
+
+Expanded the disposable Miniflare D1 atomicity suite with two synthetic cases. First, a rotation batch inserts a replacement session, revokes the old session, and then deliberately fails the audit insert; final-state assertions require the old session to remain active, the replacement to be absent, and no audit row to persist. Second, a unique exchange idempotency key is exercised by replaying the same key; the duplicate batch must roll back its candidate session and audit rows, leaving exactly one session, one audit event, and one exchange record. These are pinned Miniflare in-memory tests only; they do not implement session exchange or prove remote Cloudflare D1 semantics.
+
+### 10. No-login dashboard share security contract
+
+Added `SHARE_LINK_SECURITY_CONTRACT.md` defining the bearer-link threat model, CEO approval binding, token entropy/hash-only storage, seven-day maximum expiry, revocation, read-only dashboard and field allowlists, no-store/referrer controls, rate limiting, audit constraints, and acceptance tests. This is a design contract only: no schema, endpoint, token, dashboard data connection, or public share was created. Each concrete share still requires CEO approval of its exact dashboard, fields/filters, audience, expiry, and any network restrictions.
