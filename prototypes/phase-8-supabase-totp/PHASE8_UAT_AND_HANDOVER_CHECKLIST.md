@@ -51,6 +51,6 @@ These checks use synthetic identities, locally generated keys, mocks, and dispos
 
 ## D. Handover statement
 
-Do not describe Phase 8 as production-ready or complete authentication. Current verified status is isolated adapter/helper/test coverage plus design documents. First-factor choice, session exchange, runtime lifecycle enforcement, real route integration, share implementation, remote D1 verification, and deployment remain outstanding.
+Do not describe Phase 8 as production-ready or complete authentication. Current verified status is isolated adapter/helper/test coverage plus design documents. The first-factor choice is recorded for design-only use. Session exchange, runtime lifecycle enforcement, real route integration, share implementation, remote D1 verification, and deployment remain outstanding.
 
 Production deployment, real user activation, live D1 changes, real TOTP enrollment, and PR merge each require their own explicit approval.
