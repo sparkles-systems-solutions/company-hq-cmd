@@ -54,7 +54,7 @@ before(async () => {
     modules: true,
     modulesRules: [{ type: "ESModule", include: ["**/*.js"] }],
     scriptPath: "./src/index.js",
-    compatibilityDate: "2026-11-25",
+    compatibilityDate: "2026-08-06",
     d1Databases: { DB: "cmd-disposable-integration-db" }
   });
   db = await mf.getD1Database("DB");
