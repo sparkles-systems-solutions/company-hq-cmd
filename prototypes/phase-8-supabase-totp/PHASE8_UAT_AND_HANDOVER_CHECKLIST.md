@@ -7,6 +7,9 @@
 - [x] Worker JavaScript source syntax validation
 - [x] Authorization primitive and D1 mock tests
 - [x] Supabase JWT verifier tests using locally generated synthetic keys
+- [x] Email/password first-factor response contract tests (trusted synthetic Auth response, verified-email timestamp, no token leakage)
+- [x] Email/password provider identity mapping tests using exact subject UUID
+- [x] Password-reset/TOTP boundary test: AAL1 still requires TOTP and cannot enter CMD
 - [x] TOTP step-up adapter tests with synthetic provider responses
 - [x] Exact provider-subject-to-human mapping tests
 - [x] Session lifecycle boundary and last-seen refresh helper tests
@@ -17,7 +20,7 @@
 - [x] Disposable Miniflare D1 rotation/audit rollback and exchange-idempotency tests
 - [x] Disposable SQLite migration replay and safety invariants
 
-These checks use synthetic identities, locally generated keys, mocks, and disposable databases. They do not prove a deployed authentication flow or remote D1 behavior.
+These checks use synthetic identities, locally generated keys, mocks, and disposable databases. GitHub Actions run #130 passed the code commit containing the email/password contract, identity mapping and password-reset/TOTP tests. These checks do not prove a deployed authentication flow or remote D1 behavior.
 
 ## B. Integrated UAT — not yet executable
 
