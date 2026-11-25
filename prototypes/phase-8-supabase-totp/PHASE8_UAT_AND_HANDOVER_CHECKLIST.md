@@ -75,3 +75,13 @@ Production deployment, real user activation, live D1 changes, real TOTP enrollme
 - [ ] Secret manager and named custodians remain unapproved; no secrets have been generated or stored.
 
 These are documentation-only controls. They do not authorize project creation, secrets, remote D1, deployment, session exchange, real-user activation, or PR merge.
+
+## G. Batch 10 — authentication integration implementation plan (design only)
+
+- [x] Added staged implementation plan covering provider adapter, one-time exchange key, target atomic session/exchange/audit commit, cookie and CSRF/CORS, runtime lifecycle, logout/revocation/rotation, route RBAC/data scopes, remote D1 verification, UAT, and release gates.
+- [x] Defined proposed API contracts while clearly marking them as not implemented routes.
+- [x] Defined no-go conditions, acceptance matrix, evidence requirements, and CEO/virtual-role responsibility boundaries.
+- [ ] CEO approval for a named non-production Supabase project and secret custody remains outstanding.
+- [ ] Provider project creation, secrets, live sign-in/TOTP, remote D1, runtime exchange/cookie integration, deployment, real-user activation, PR readiness, and merge remain unauthorized or unimplemented pending their separate approvals.
+
+Batch 10 changed documentation only. No CI run is claimed for this documentation-only update; the latest cited code CI evidence remains run #144 on commit 2cf5e2ba02f296106e74845f1346629beead6534.
