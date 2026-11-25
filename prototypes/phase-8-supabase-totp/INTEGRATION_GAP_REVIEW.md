@@ -1,6 +1,6 @@
 # Phase 8 — Isolated integration gap review
 
-**Status:** static source review plus isolated Miniflare D1 contract tests. No runtime session wiring, production database writes, deployment, or real identity activity.
+**Status:** static source review plus isolated Miniflare D1 and Worker contract tests. No runtime session wiring, production database writes, deployment, or real identity activity.
 
 ## Scope reviewed
 
@@ -10,12 +10,16 @@
 - `worker/src/supabase-request-auth.js`
 - Existing Phase 8 README and session/request-boundary notes
 - Disposable Miniflare D1 batch atomicity and concurrent-claim tests
+- Session lifecycle policy boundary tests
+- Current Worker CORS preflight contract tests
 
 ## Findings
 
 ### 1. Session lifecycle policy is not enforced by the current Worker handler
 
 The current `authenticate()` query checks that a session is not revoked, its absolute expiry is in the future, and its human account/person are active. It does not yet enforce the Phase 8 idle timeout, maximum issued-to-expiry lifetime, future timestamp/order checks, or last-seen refresh throttle from `session-lifecycle.js`.
+
+**Test evidence (pure helper only):** `session-lifecycle-boundaries.test.js` covers exact absolute-expiry rejection, the idle-timeout boundary, future `last_seen_at`, the ten-minute MFA freshness boundary, and the five-minute last-seen refresh threshold. These tests exercise the pure policy helper; they do not prove that `authenticate()` or any Worker route invokes it.
 
 **Required before session integration:** map D1 timestamp fields into the pure lifecycle evaluator; reject invalid/idle/expired sessions; update `last_seen_at` only when the throttle permits; preserve fixed `expires_at`. Make the read/refresh behavior safe under concurrent requests.
 
@@ -40,7 +44,9 @@ The current audit helper performs an individual insert. No session issuance or r
 
 `validateBrowserMutation()` checks configured Origin, optional Fetch Metadata, JSON content type, and a matching double-submit CSRF cookie/header. It is not wired into mutation routes and does not issue CSRF tokens. The current CORS allow-header list in `worker/src/index.js` does not yet include `x-cmd-csrf`, so a future browser client using that header would need a deliberate CORS update and preflight tests.
 
-**Required before browser session integration:** add a dedicated token-issuance design, wire the guard before every cookie-authenticated mutation, align CORS headers with the CSRF header, and test same-origin and cross-origin browser preflight/mutation cases. No CORS behavior has been broadened in this safe test-only increment.
+**Test evidence (current behavior only):** `cors-preflight.test.js` verifies that configured origins receive a 204 preflight response, unconfigured/mismatched origins fail closed, and the current allow-header list contains `content-type` but not `x-cmd-csrf`. This deliberately records the present integration gap; it does not enable the CSRF header or establish that browser mutations are ready.
+
+**Required before browser session integration:** add a dedicated token-issuance design, wire the guard before every cookie-authenticated mutation, deliberately align CORS allow-headers with the CSRF header, and test same-origin and cross-origin browser preflight/mutation cases. No CORS behavior has been broadened in this safe test-only increment.
 
 ## Decisions and blockers
 
