@@ -93,8 +93,12 @@ def main():
         "UPDATE role_scope_grants SET grant_status='active', granted_by='test-ceo', granted_at=CURRENT_TIMESTAMP WHERE id='pending-grant-update'",
     )
 
-    # The already active legal-advisor seed can receive a grant only through a human activator;
-    # this is a disposable schema test, not an actual permission grant or activation.
+    # Migration 0004 deliberately resets every virtual member to pending.
+    # Simulate a CEO-approved status transition only inside this disposable database,
+    # then verify the active grant path and restore pending before the test ends.
+    db.execute(
+        "UPDATE people SET status='active' WHERE id='member-virtual-ai-legal-advisor' AND person_type='virtual'"
+    )
     db.execute(
         """INSERT INTO role_scope_grants
            (id,role_assignment_id,module_key,scope_type,scope_id,grant_status,granted_by,granted_at)
@@ -102,6 +106,9 @@ def main():
         ("test-legal-scope", "assignment-virtual-ai-legal-advisor", "DOC", "company", None, "active", "test-ceo"),
     )
     db.execute("DELETE FROM role_scope_grants WHERE id='test-legal-scope'")
+    db.execute(
+        "UPDATE people SET status='pending' WHERE id='member-virtual-ai-legal-advisor' AND person_type='virtual'"
+    )
 
     # A control record must be created unconsumed and tied to an approved human decision.
     db.execute(
