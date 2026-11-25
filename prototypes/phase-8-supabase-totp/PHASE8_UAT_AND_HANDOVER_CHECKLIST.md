@@ -20,7 +20,7 @@
 - [x] Disposable Miniflare D1 rotation/audit rollback and exchange-idempotency tests
 - [x] Disposable SQLite migration replay and safety invariants
 
-These checks use synthetic identities, locally generated keys, mocks, and disposable databases. GitHub Actions run #130 passed the code commit containing the email/password contract, identity mapping and password-reset/TOTP tests. These checks do not prove a deployed authentication flow or remote D1 behavior.
+These checks use synthetic identities, locally generated keys, mocks, and disposable databases. GitHub Actions run [#144](https://github.com/sparkles-systems-solutions/company-hq-cmd/actions/runs/45585460944) passed the code commit `2cf5e2ba02f296106e74845f1346629beead6534` (syntax check, unit tests, disposable SQLite migration/safety checks). The two subsequent branch commits were documentation-only; run #144 is not claimed as a run on the latest documentation head. These checks do not prove a deployed authentication flow or remote D1 behavior.
 
 ## B. Integrated UAT — not yet executable
 
@@ -65,3 +65,13 @@ Production deployment, real user activation, live D1 changes, real TOTP enrollme
 - [x] Returns only a non-secret plan; no token, cookie, D1 write, exchange-key consume, or route integration.
 - [ ] End-to-end exchange, cookie issuance, D1 atomic commit, and browser CSRF/CORS integration remain not implemented.
 
+
+
+## F. Batch 8 — non-production approval and custody controls
+
+- [x] Added `CEO_NONPRODUCTION_PROJECT_APPROVAL_RECORD.md` as an uncompleted approval template; no approval is recorded.
+- [x] Added `NONPRODUCTION_SECRET_CUSTODY_CHECKLIST.md` for least-privilege access, evidence, rotation, revocation, and cleanup.
+- [ ] CEO must explicitly approve a named non-production project, owner, region, cost ceiling, expiry, custodians, and exact permitted actions before project creation.
+- [ ] Secret manager and named custodians remain unapproved; no secrets have been generated or stored.
+
+These are documentation-only controls. They do not authorize project creation, secrets, remote D1, deployment, session exchange, real-user activation, or PR merge.
