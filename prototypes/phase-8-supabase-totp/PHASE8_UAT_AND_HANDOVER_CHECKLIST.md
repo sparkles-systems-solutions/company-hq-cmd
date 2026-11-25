@@ -99,3 +99,15 @@ Batch 10 changed documentation only. No CI run is claimed for this documentation
 - [ ] Complete separately approved non-production project and secret-custody gate before provider integration.
 
 Disposition: NOT READY for runtime authentication integration. Batch 11 changed documentation only; no CI run is claimed for this documentation-only review.
+
+## I. Batch 12 — canonical authentication protocol reconciliation
+
+- [x] Compared the direct bearer exchange design with the two-step exchange-key implementation plan.
+- [x] Recorded one canonical recommendation: direct bearer-token POST exchange; rationale and trade-offs documented.
+- [x] Recommended a consistent SameSite=Lax session-cookie policy and double-submit CSRF policy for cookie-authenticated mutations.
+- [x] Defined the bearer-exchange Origin/Fetch Metadata/CORS boundary and its CSRF-token exception.
+- [x] Defined the session + success-audit atomic write contract and post-commit-only cookie delivery.
+- [ ] CEO decision on exchange protocol, SameSite settings, CSRF policy, and atomicity contract remains PENDING.
+- [ ] Existing exchange-key planner/tests must not be treated as direct-exchange implementation; reconcile only after the CEO decision.
+
+Documentation-only batch. No runtime code, schema, credentials, provider project, real identity, remote D1, deployment, or PR merge changed. No new CI run is claimed. Runtime integration remains NOT READY.
