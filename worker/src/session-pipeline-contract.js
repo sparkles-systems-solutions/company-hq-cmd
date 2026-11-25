@@ -53,7 +53,7 @@ export async function runSessionPipelineContract({
   const lifecycle = evaluateSessionLifecycle({
     issuedAt: row.issued_at,
     expiresAt: row.expires_at,
-    lastSeenAt: row.last_seen_at || row.issued_at,
+    lastSeenAt: row.last_seen_at === null || row.last_seen_at === undefined ? row.issued_at : row.last_seen_at,
     revokedAt: row.revoked_at
   }, now);
   if (!lifecycle.valid) {
@@ -65,7 +65,7 @@ export async function runSessionPipelineContract({
     return denied(lifecycle.reason);
   }
 
-  if (shouldRefreshLastSeen(row.last_seen_at || row.issued_at, now)) {
+  if (shouldRefreshLastSeen(row.last_seen_at === null || row.last_seen_at === undefined ? row.issued_at : row.last_seen_at, now)) {
     let refreshResult;
     try {
       refreshResult = await refreshLastSeen(row.id, new Date(now).toISOString());
