@@ -62,7 +62,7 @@ before(async () => {
   for (const file of migrationFiles) {
     const sql = await readFile(new URL(file, import.meta.url), "utf8");
     // D1 manages foreign-key enforcement itself and does not accept SQLite PRAGMA statements.
-    const d1CompatibleSql = sql.replace(/^\\s*PRAGMA\\s+foreign_keys\\s*=\\s*ON\\s*;\\s*/gim, "");
+    const d1CompatibleSql = sql.replace(/^\s*PRAGMA\s+foreign_keys\s*=\s*ON\s*;\s*/gim, "");
     await db.exec(d1CompatibleSql);
   }
 
