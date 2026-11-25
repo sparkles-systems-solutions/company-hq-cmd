@@ -128,3 +128,12 @@ The trusted server-side identity mapping allowlist now includes `email_password`
 Added a TOTP test proving that an AAL1 session still requires a TOTP challenge and successful post-challenge AAL2 confirmation. Password reset itself is not implemented; it must never be treated as TOTP recovery or as an MFA bypass.
 
 **CI evidence:** GitHub Actions run [#130](https://github.com/sparkles-systems-solutions/company-hq-cmd/actions/runs/45575739849) completed successfully for code commit `0cc7567391fbc0de557b14ebf3c9f0c5eff1d013`. The worker-tests job passed syntax check, unit tests, and disposable SQLite migration/safety checks. Subsequent changes to the UAT and gap-review documents are documentation-only.
+
+### 15. Session exchange planner — isolated contract only
+
+The CEO's first-factor decision is recorded as Supabase Email + Password with verified email; TOTP remains the second factor. Added `session-exchange-contract.js` and synthetic tests. The planner requires already-verified JWT signature/issuer/audience/expiry, AAL2, the approved server-selected provider, verified email, an exact active-human UUID mapping, fresh MFA, browser mutation validation, and a short-lived SHA-256 exchange-key hash. It rejects replayed/expired/malformed keys and never accepts request-selected person/role/scope as authority.
+
+The helper returns a non-secret plan only. It does not verify provider tokens, consume an exchange key, access D1, issue a CMD token/cookie, or connect to a Worker route. Existing Miniflare D1 tests verify separate atomic batch/idempotency primitives using disposable data; they do not prove that a future combined exchange is atomic on remote Cloudflare D1.
+
+Cookie contract remains `__Host-cmd_session; Secure; HttpOnly; Path=/; SameSite=Strict; no Domain`; raw tokens must never be stored in browser storage, JSON, logs, or audit metadata. A future implementation must atomically consume the exchange key, insert the session hash, and persist the audit event before setting the cookie. Current CSRF guard is unwired and CORS does not allow `x-cmd-csrf`; this remains a hard browser integration blocker.
+
