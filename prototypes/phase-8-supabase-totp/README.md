@@ -1,15 +1,19 @@
-# Phase 8 — Isolated Supabase Auth + TOTP Prototype
+# Phase 8 — Isolated Supabase Auth + Email/Password + TOTP Prototype
 
-**Status:** isolated prototype foundation only. No Supabase project, account, credentials, real user, remote database, Worker deployment, or production configuration is created or changed.
+**Status:** isolated prototype foundation and design only. No Supabase project, account, credentials, real user, remote database, Worker deployment, or production configuration is created or changed.
 
-## CEO-approved scope
-- Provider: Supabase Auth
-- MFA: TOTP authenticator app
-- Environment: isolated local/disposable prototype only
-- Exclusions: production deployment, real user activation, live D1 changes, production secrets, and PR merge.
+## CEO-approved authentication decisions
+- Identity provider: Supabase Auth
+- First factor: **Email + Password**
+- Sign-in identifier: **verified email address**
+- Second factor: **TOTP authenticator app**
+- Required assurance before CMD access: **AAL2**
+- Scope: isolated prototype design and synthetic/local tests only
+
+See `CEO_EMAIL_PASSWORD_TOTP_DECISION.md` for the complete flow, credential boundaries, account policy, tests and remaining approvals.
 
 ## What this prototype validates
-This prototype now includes a `jose`-based JWT signature verifier against the project's asymmetric Supabase JWKS, followed by an independently testable AAL2 claims gate. It does not issue CMD sessions or grant CMD permissions. The verifier fails closed for legacy symmetric signing configurations; those require a separately reviewed Auth-server verification path.
+This prototype includes a `jose`-based JWT signature verifier against the project's asymmetric Supabase JWKS, followed by an independently testable AAL2 claims gate. It does not issue CMD sessions or grant CMD permissions. The verifier fails closed for legacy symmetric signing configurations; those require a separately reviewed Auth-server verification path.
 
 Expected verified Supabase access-token claims:
 - Exact project issuer: https://<project-ref>.supabase.co/auth/v1
@@ -27,37 +31,30 @@ The Worker must verify JWT signature, issuer, audience, expiry and key rotation 
 
 The verifier is not yet wired into the Worker request handler or CMD session creation. It must be integrated only after the remaining session/CSRF/audit review.
 
-`worker/src/supabase-totp.js` now contains a mock-testable step-up adapter. It checks the Supabase AAL state, requires exactly one already-verified TOTP factor, requests a challenge, verifies the six-digit code, and rechecks that the resulting session is AAL2. It fails closed on missing/multiple factors and provider errors. It does not enroll or remove factors, display QR codes, or establish a CMD session.
+`worker/src/supabase-totp.js` contains a mock-testable step-up adapter. It checks the Supabase AAL state, requires exactly one already-verified TOTP factor, requests a challenge, verifies the six-digit code, and rechecks that the resulting session is AAL2. It fails closed on missing/multiple factors and provider errors. It does not enroll or remove factors, display QR codes, or establish a CMD session.
 
-## TOTP flow for a disposable Supabase project
-1. Create a separate Supabase development project; do not use production.
-2. Disable public sign-up and invite only a designated test identity.
-3. Enable TOTP MFA.
-4. Use Supabase Auth PKCE flow for first-factor sign-in.
-5. Read getAuthenticatorAssuranceLevel(). If current level is aal1 and next level is aal2, require a TOTP challenge.
-6. Call mfa.challenge() and mfa.verify(); continue only when the resulting session is aal2.
-7. Verify the access token at the Worker boundary and map its sub to an already-provisioned active human auth_users row.
-8. Keep CMD D1 authorization (role, permission, scope, audit) independent from Supabase identity.
+## Intended sign-in sequence (design only)
 
-Supabase's documented TOTP lifecycle is enroll → challenge → verify. Successful verification upgrades the session to aal2. Official references:
-- https://supabase.com/docs/guides/auth/auth-mfa/totp
-- https://supabase.com/docs/guides/auth/auth-mfa
-- https://supabase.com/docs/guides/auth/sessions/pkce-flow
-- https://supabase.com/docs/guides/auth/jwt-fields
+1. Sign in with verified email + password using Supabase Auth PKCE.
+2. Require provider-confirmed email; deny unverified identities.
+3. Check assurance level and require TOTP challenge/verification unless the session is already AAL2.
+4. Continue only when the resulting session is AAL2.
+5. Worker verifies the signed access token and maps the exact provider subject to an existing active human CMD identity.
+6. A future session exchange may issue a CMD cookie only after session, audit, D1, CSRF and lifecycle controls are integrated and separately approved.
+
+Password storage and verification belong to Supabase Auth. CMD Worker/D1 must never store or log plaintext passwords or password hashes. Public self-registration is disabled in the intended company deployment; no live project configuration has been applied.
 
 ## Security boundaries
 - Never put a Supabase secret/service-role key in browser code or Git.
 - A publishable/anon key is not an authorization grant; server-side checks remain mandatory.
 - Do not trust user_metadata, browser-provided role claims, person IDs, or permission/scope fields.
 - Do not store Supabase access/refresh tokens in localStorage for the intended CMD architecture.
-- Do not issue a CMD __Host-cmd_session cookie until the Worker has verified the JWT, confirmed aal2, mapped the subject to the one active human identity, and successfully written D1 audit/session records.
+- Do not issue a CMD `__Host-cmd_session` cookie until the Worker has verified the JWT, confirmed aal2, mapped the subject to the one active human identity, and successfully written D1 audit/session records.
 - Do not add or apply migration 0006 in this prototype.
 - No authentication identity or TOTP factor is enrolled by these source files.
 
 ## Local validation
-From worker/: npm test and npm run check. Tests are deterministic and require no Supabase account, network call, secrets, or D1 database.
+From `worker/`: `npm test` and `npm run check`. Tests are deterministic and require no Supabase account, network call, secrets, or D1 database.
 
 ## Next implementation gate
-Before connecting the Worker, independently review JWT signing algorithm and JWKS verification, session exchange and secure cookie design (including PKCE verifier handling), atomic D1 session creation and fail-closed audit behavior, TOTP enrollment/recovery and factor-reset procedures, and disposable Cloudflare D1 compatibility plus browser CSRF/Origin protections.
-
-Only after these tests and a security review should a separate staging proposal be prepared. This CEO approval does not authorize staging or production changes.
+The CEO has selected Email + Password and approved TOTP for isolated prototype design. Before live provider integration, separately approve an isolated non-production Supabase project and secret handling. Review password/email verification settings, TOTP enrollment and recovery, session exchange and secure cookie design, atomic D1 session/audit writes, CSRF/Origin protections, and remote D1 compatibility. No staging or production work is authorized.
