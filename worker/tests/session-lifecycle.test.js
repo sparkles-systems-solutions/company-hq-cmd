@@ -16,7 +16,7 @@ test("rejects missing, revoked and malformed sessions", () => {
   assert.equal(evaluateSessionLifecycle(activeSession({ issuedAt: "bad-date" }), NOW).reason, "invalid_timestamps");
 });
 test("rejects idle timeout and absolute expiry", () => {
-  assert.equal(evaluateSessionLifecycle(activeSession({ lastSeenAt: iso(NOW - 31 * 60000) }), NOW).reason, "idle_timeout");
+  assert.equal(evaluateSessionLifecycle(activeSession({ issuedAt: iso(NOW - 40 * 60000), lastSeenAt: iso(NOW - 31 * 60000) }), NOW).reason, "idle_timeout");
   assert.equal(evaluateSessionLifecycle(activeSession({ expiresAt: iso(NOW) }), NOW).reason, "absolute_expiry");
 });
 test("rejects inconsistent issue, last-seen and expiry ordering", () => {
