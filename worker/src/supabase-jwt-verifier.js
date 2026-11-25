@@ -58,7 +58,8 @@ export async function verifySupabaseAccessToken(token, env, options = {}) {
       issuer: project.issuer,
       audience: "authenticated",
       algorithms: ALLOWED_ALGORITHMS,
-      clockTolerance: 30
+      clockTolerance: 30,
+      currentDate: new Date((options.nowSeconds ?? Math.floor(Date.now() / 1000)) * 1000)
     });
     const checked = validateSupabaseAal2Claims(verified.payload, {
       issuer: project.issuer,
