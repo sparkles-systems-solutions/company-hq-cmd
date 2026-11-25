@@ -69,3 +69,9 @@ The documentation audit reconciled outdated first-factor-undecided wording in `I
 The final security review was refreshed with CI run [#144](https://github.com/sparkles-systems-solutions/company-hq-cmd/actions/runs/45585460944) and distinguishes the tested code commit `2cf5e2ba02f296106e74845f1346629beead6534` from subsequent documentation-only commits. PR #2 was inspected: Open, Draft, Unmerged; mergeable reported true. GitHub returned no submitted reviews and no inline review threads at the time of review. This is not an approval to mark ready or merge.
 
 No application code, schema, credentials, provider project, real identity, remote database, deployment, or PR merge was changed during Batch 9. The prototype remains not production-ready; runtime session lifecycle, session exchange, CSRF/CORS integration, protected routes, remote D1 verification, dashboard sharing, and operational security remain outstanding.
+
+## Addendum — Batch 10 authentication integration plan
+
+Added [AUTHENTICATION_INTEGRATION_IMPLEMENTATION_PLAN.md](./AUTHENTICATION_INTEGRATION_IMPLEMENTATION_PLAN.md), a documentation-only staged plan covering governance gates, provider adapter wiring, one-time exchange-key lifecycle, target atomic D1 session/exchange/audit commit, secure cookie and CSRF/CORS integration, runtime lifecycle and revocation, route RBAC/data scopes, remote D1 verification, integrated UAT, and separate release decisions. The plan explicitly distinguishes proposed contracts from implemented routes and requires separate CEO approval at each external-resource, database, deployment, merge, and real-user gate.
+
+No application code, schema, credentials, provider project, real identity, remote database, deployment, PR status, or merge was changed during Batch 10. This batch adds design documentation only; existing CI evidence remains attached to the exact previously tested code commit and does not test this documentation-only update.
