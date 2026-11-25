@@ -74,3 +74,35 @@ test("rejects malformed token input", async () => {
   assert.equal((await verifySupabaseAccessToken("", ENV)).reason, "invalid_token");
   assert.equal((await verifySupabaseAccessToken("x".repeat(17000), ENV)).reason, "invalid_token");
 });
+
+test("rejects expired signed tokens", async () => {
+  const { publicKey, privateKey } = await generateKeyPair("ES256");
+  const jwk = await exportJWK(publicKey);
+  jwk.kid = "prototype-key-1";
+  jwk.alg = "ES256";
+  jwk.use = "sig";
+  const jwks = createLocalJWKSet({ keys: [jwk] });
+  const expired = await new SignJWT(BASE_CLAIMS)
+    .setProtectedHeader({ alg: "ES256", kid: "prototype-key-1" })
+    .setIssuer(ISSUER)
+    .setAudience("authenticated")
+    .setSubject(BASE_CLAIMS.sub)
+    .setIssuedAt(NOW - 600)
+    .setExpirationTime(NOW - 60)
+    .sign(privateKey);
+  const result = await verifySupabaseAccessToken(expired, ENV, { jwks, nowSeconds: NOW });
+  assert.deepEqual(result, { valid: false, reason: "jwt_verification_failed" });
+});
+
+test("rejects tokens signed by an untrusted key", async () => {
+  const { token } = await fixture();
+  const { publicKey } = await generateKeyPair("ES256");
+  const jwk = await exportJWK(publicKey);
+  jwk.kid = "different-key";
+  jwk.alg = "ES256";
+  const result = await verifySupabaseAccessToken(token, ENV, {
+    jwks: createLocalJWKSet({ keys: [jwk] }),
+    nowSeconds: NOW
+  });
+  assert.deepEqual(result, { valid: false, reason: "jwt_verification_failed" });
+});
