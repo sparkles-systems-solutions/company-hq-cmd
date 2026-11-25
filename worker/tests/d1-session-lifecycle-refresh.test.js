@@ -28,9 +28,8 @@ const REFRESH_SQL = `
      AND revoked_at IS NULL
      AND issued_at <= ?
      AND expires_at > ?
-     AND last_seen_at IS NOT NULL
-     AND last_seen_at <= ?
-     AND last_seen_at < ?
+     AND COALESCE(last_seen_at, issued_at) <= ?
+     AND COALESCE(last_seen_at, issued_at) < ?
   RETURNING id, issued_at, expires_at, last_seen_at
 `;
 
@@ -80,6 +79,10 @@ test("last-seen refresh waits until the five-minute throttle boundary", async ()
     const updated = await refresh(db, "session-1", now);
     assert.equal(updated.length, 1);
     assert.equal(updated[0].last_seen_at, iso(now));
+
+    // A NULL last_seen_at uses issued_at as the idle-time reference.
+    await insertSession(db, { id: "null-last-seen", lastSeenAt: null });
+    assert.equal((await refresh(db, "null-last-seen", now)).length, 1);
   } finally {
     await mf.dispose();
   }
