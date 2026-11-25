@@ -166,3 +166,7 @@ Retain exact commit SHA, changed files, test commands/results, CI run associatio
 **Not authorized:** non-production Supabase project creation; secret generation or custody activation; live provider sign-in; real TOTP enrollment; remote D1 provisioning/writes; Worker deployment; staging/production; real-user activation; PR readiness conversion; PR merge.
 
 The next blocking decision is completion and explicit CEO approval of a named non-production Supabase project and secret-custody record. Until then, work remains at the design/local-test boundary.
+
+## Canonical protocol decision dependency
+
+Before implementation, review [AUTHENTICATION_PROTOCOL_DECISIONS.md](./AUTHENTICATION_PROTOCOL_DECISIONS.md). It contains the recommended direct bearer-token exchange, cookie SameSite policy, CSRF/CORS contract, audit atomicity requirement, and explicit CEO decision fields. These recommendations supersede neither the existing implementation nor the CEO approval gates until explicitly accepted. In particular, the current two-step exchange-key planner remains only a test contract and is not evidence of an implemented route.
