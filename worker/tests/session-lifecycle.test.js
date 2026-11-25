@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { SESSION_POLICY, calculateSessionExpiry, evaluateSessionLifecycle, isMfaFresh, shouldRefreshLastSeen } from "../src/session-lifecycle.js";
+import { SESSION_POLICY, calculateSessionExpiry, evaluateSessionLifecycle, evaluateLastSeenRefreshResult, isMfaFresh, shouldRefreshLastSeen } from "../src/session-lifecycle.js";
 const NOW = Date.parse("2026-11-25T12:00:00.000Z");
 const iso = (ms) => new Date(ms).toISOString();
 const activeSession = (overrides = {}) => ({ issuedAt: iso(NOW - 60000), expiresAt: iso(NOW + 3600000), lastSeenAt: iso(NOW - 60000), revokedAt: null, ...overrides });
@@ -41,4 +41,26 @@ test("enforces ten-minute MFA freshness", () => {
   assert.equal(isMfaFresh(iso(NOW - 11 * 60000), NOW), false);
   assert.equal(isMfaFresh(iso(NOW + 60000), NOW), false);
   assert.equal(isMfaFresh(null, NOW), false);
+});
+
+test("last-seen refresh result accepts exactly one changed row", () => {
+  assert.deepEqual(evaluateLastSeenRefreshResult({ meta: { changes: 1 } }), {
+    accepted: true, reason: "refreshed"
+  });
+});
+test("last-seen refresh fails closed for zero or multiple changed rows", () => {
+  assert.deepEqual(evaluateLastSeenRefreshResult({ meta: { changes: 0 } }), {
+    accepted: false, reason: "refresh_not_applied"
+  });
+  assert.deepEqual(evaluateLastSeenRefreshResult({ meta: { changes: 2 } }), {
+    accepted: false, reason: "refresh_not_applied"
+  });
+  assert.deepEqual(evaluateLastSeenRefreshResult(null), {
+    accepted: false, reason: "refresh_not_applied"
+  });
+});
+test("last-seen refresh fails closed when D1 reports an error", () => {
+  assert.deepEqual(evaluateLastSeenRefreshResult(null, new Error("synthetic D1 failure")), {
+    accepted: false, reason: "refresh_failed"
+  });
 });
