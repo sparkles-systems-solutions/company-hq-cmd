@@ -64,3 +64,16 @@ test("fails closed on provider challenge and verify errors", async () => {
   const verifyClient = mockSupabase({ verifyError: new Error("failed") });
   assert.deepEqual(await verifyTotpForAal2(verifyClient, "123456"), { ok: false, reason: "totp_verification_failed" });
 });
+
+test("password reset does not bypass TOTP while the session remains AAL1", async () => {
+  const client = mockSupabase({
+    aal: [
+      { currentLevel: "aal1", nextLevel: "aal2" },
+      { currentLevel: "aal2", nextLevel: "aal2" }
+    ]
+  });
+  const result = await verifyTotpForAal2(client, "654321");
+  assert.deepEqual(result, { ok: true, assuranceLevel: "aal2", alreadyVerified: false });
+  assert.equal(client.calls.some((call) => Array.isArray(call) && call[0] === "challenge"), true);
+  assert.equal(client.calls.some((call) => Array.isArray(call) && call[0] === "verify"), true);
+});
