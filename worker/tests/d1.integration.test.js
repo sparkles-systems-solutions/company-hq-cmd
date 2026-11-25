@@ -138,8 +138,18 @@ before(async () => {
     const sql = await readFile(new URL(file, import.meta.url), "utf8");
     // D1 manages foreign-key enforcement itself and does not accept SQLite PRAGMA statements.
     const d1CompatibleSql = sql.replace(/^\s*PRAGMA\s+foreign_keys\s*=\s*ON\s*;\s*/gim, "");
-    for (const statement of splitSqlStatements(d1CompatibleSql)) {
-      await db.prepare(statement).run();
+    const statements = splitSqlStatements(d1CompatibleSql);
+    for (let statementIndex = 0; statementIndex < statements.length; statementIndex += 1) {
+      const statement = statements[statementIndex];
+      try {
+        await db.prepare(statement).run();
+      } catch (error) {
+        const preview = statement.replace(/\\s+/g, " ").slice(0, 500);
+        throw new Error(
+          `D1 migration replay failed in ${file}, statement ${statementIndex + 1}/${statements.length}: ${error.message}\\nSQL: ${preview}`,
+          { cause: error }
+        );
+      }
     }
   }
 
