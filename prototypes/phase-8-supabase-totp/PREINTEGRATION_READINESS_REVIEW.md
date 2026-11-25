@@ -128,3 +128,7 @@ No choice is made by this review. These decisions should be recorded in the cano
 **Not authorized:** Supabase project creation, secret generation/custody activation, live provider sign-in, real TOTP enrollment, remote D1 provisioning/writes, Worker deployment, staging/production, real-user activation, PR readiness conversion, or PR merge.
 
 **Disposition:** keep PR #2 draft/open/unmerged. Do not begin runtime authentication integration until the design reconciliation is complete and the relevant CEO approvals are separately recorded.
+
+## Batch 12 reconciliation status
+
+The canonical recommendation and pending decision table are now recorded in [AUTHENTICATION_PROTOCOL_DECISIONS.md](./AUTHENTICATION_PROTOCOL_DECISIONS.md). The recommendation is direct bearer-token exchange, SameSite=Lax, double-submit CSRF for cookie-authenticated unsafe requests, and atomic session+success-audit persistence. This resolves the documentation conflict as a proposed direction, not as an approved implementation decision. CEO acceptance remains required. The existing exchange-key planner is not aligned to the recommendation and must be reconciled only after the decision is approved.
