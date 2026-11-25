@@ -57,7 +57,7 @@ Production deployment, real user activation, live D1 changes, real TOTP enrollme
 
 ## E. Additional isolated exchange-planner checks (code added after CI #130)
 
-- [ ] Run CI on the new session-exchange planner/test commit before marking these tests CI-verified.
+- [x] CI run #142 passed on commit `d9a8005d08f04e0e64f8701b842b043b845897c0` (syntax, unit tests, disposable SQLite migration/safety checks).
 - [x] Pure planner requires trusted JWT verification and issuer/audience/expiry gate results.
 - [x] Rejects AAL1, unapproved provider, unverified email, inactive/non-human mapping, malformed UUIDs, and stale MFA.
 - [x] Requires browser mutation guard success and a short-lived SHA-256 exchange-key hash.
