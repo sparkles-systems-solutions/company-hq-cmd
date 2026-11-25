@@ -65,3 +65,7 @@ See [AUTHENTICATION_INTEGRATION_IMPLEMENTATION_PLAN.md](./AUTHENTICATION_INTEGRA
 ## Pre-integration readiness review
 
 See [PREINTEGRATION_READINESS_REVIEW.md](./PREINTEGRATION_READINESS_REVIEW.md) for the source-grounded review of current Worker wiring, lifecycle enforcement, CSRF/CORS, route authorization, exchange-protocol consistency, cookie policy, and D1 verification gaps. Its disposition is NOT READY for runtime authentication integration; it does not change the existing approval boundaries.
+
+## Canonical authentication protocol decisions
+
+See [AUTHENTICATION_PROTOCOL_DECISIONS.md](./AUTHENTICATION_PROTOCOL_DECISIONS.md) for the Batch 12 canonical reconciliation record. It recommends a direct bearer-token exchange, SameSite=Lax cookies, double-submit CSRF for cookie-authenticated mutations, and atomic session+audit writes. All listed security choices remain **PENDING CEO DECISION**; this document is design-only and does not authorize implementation or any external/production action.
