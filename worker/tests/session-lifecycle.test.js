@@ -19,6 +19,10 @@ test("rejects idle timeout and absolute expiry", () => {
   assert.equal(evaluateSessionLifecycle(activeSession({ lastSeenAt: iso(NOW - 31 * 60000) }), NOW).reason, "idle_timeout");
   assert.equal(evaluateSessionLifecycle(activeSession({ expiresAt: iso(NOW) }), NOW).reason, "absolute_expiry");
 });
+test("rejects inconsistent issue, last-seen and expiry ordering", () => {
+  assert.equal(evaluateSessionLifecycle(activeSession({ expiresAt: iso(NOW - 120000) }), NOW).reason, "invalid_timestamp_order");
+  assert.equal(evaluateSessionLifecycle(activeSession({ lastSeenAt: iso(NOW - 120000) }), NOW).reason, "invalid_timestamp_order");
+});
 test("rejects excessive lifetime and future issue time", () => {
   assert.equal(evaluateSessionLifecycle(activeSession({ expiresAt: iso(NOW + 13 * 3600000) }), NOW).reason, "absolute_lifetime_exceeded");
   assert.equal(evaluateSessionLifecycle(activeSession({ issuedAt: iso(NOW + 60000) }), NOW).reason, "issued_in_future");
