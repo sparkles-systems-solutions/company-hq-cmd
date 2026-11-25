@@ -46,3 +46,10 @@ The work is suitable for continued isolated engineering and review with syntheti
 4. Approve non-production remote D1 verification when ready.
 
 Production deployment, real user activation, live D1 changes, real TOTP enrollment, production secrets/configuration, and PR merge remain separately gated by explicit CEO approval.
+
+## Addendum — session exchange planning increment
+
+Added a dependency-free, pure session-exchange planner and adversarial synthetic tests. It validates the already-established upstream trust gates, verified Email + Password identity, AAL2/TOTP freshness, active-human mapping, browser mutation guard result, and one-time exchange-key hash/expiry state. It emits a non-secret plan only; it does not consume a key, write D1, issue a token/cookie, or integrate a route.
+
+This increment is newer than CI run #130. Do not treat its tests as CI-passed until a workflow run on the new code commit succeeds. The session exchange, atomic combined D1 write, cookie delivery, CSRF/CORS integration, runtime lifecycle enforcement, and remote D1 verification remain outstanding.
+
