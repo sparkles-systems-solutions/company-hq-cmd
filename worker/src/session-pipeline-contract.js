@@ -78,7 +78,48 @@ export async function runSessionPipelineContract({
     }
   }
 
-  if (needsFreshMfa && !isMfaFresh(row.mfa_verified_at, now)) {
+  // Re-read immediately before authorization. This narrows the stale-session
+  // window after the first lookup/refresh and detects a concurrent revocation.
+  // It is not a transaction with the protected-data read; production wiring
+  // must still establish the target D1 consistency/atomicity guarantees.
+  let currentRow;
+  try {
+    currentRow = await loadSession(sessionTokenHash);
+  } catch {
+    return denied("session_recheck_failed", 503);
+  }
+  if (!currentRow) return denied("invalid_session");
+
+  if (currentRow.id !== row.id || currentRow.person_id !== row.person_id) {
+    return denied("session_identity_changed");
+  }
+
+  let currentIdentityActive = false;
+  try {
+    currentIdentityActive = await isActiveHuman(currentRow);
+  } catch {
+    return denied("identity_recheck_failed", 503);
+  }
+  if (!currentIdentityActive) return denied("inactive_or_nonhuman_identity");
+
+  const currentLifecycle = evaluateSessionLifecycle({
+    issuedAt: currentRow.issued_at,
+    expiresAt: currentRow.expires_at,
+    lastSeenAt: currentRow.last_seen_at === null || currentRow.last_seen_at === undefined
+      ? currentRow.issued_at
+      : currentRow.last_seen_at,
+    revokedAt: currentRow.revoked_at
+  }, now);
+  if (!currentLifecycle.valid) {
+    try {
+      await auditDenial(currentLifecycle.reason);
+    } catch {
+      return denied("denial_audit_failed", 503);
+    }
+    return denied(currentLifecycle.reason);
+  }
+
+  if (needsFreshMfa && !isMfaFresh(currentRow.mfa_verified_at, now)) {
     try {
       await auditDenial("fresh_mfa_required");
     } catch {
@@ -86,6 +127,8 @@ export async function runSessionPipelineContract({
     }
     return denied("fresh_mfa_required", 403);
   }
+
+  row = currentRow;
 
   let authorization;
   try {
