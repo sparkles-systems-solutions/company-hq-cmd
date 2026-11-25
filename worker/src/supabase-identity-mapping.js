@@ -1,11 +1,11 @@
-/**
+/** 
  * Resolve a cryptographically verified Supabase subject to a pre-provisioned
  * CMD human identity. This is deliberately not a login/session issuer.
  *
  * authProvider must be selected by trusted server configuration and must match
  * the existing CMD auth_users catalogue. Never derive it from request input.
  */
-const ALLOWED_AUTH_PROVIDERS = new Set(["email_otp", "oidc", "webauthn"]);
+const ALLOWED_AUTH_PROVIDERS = new Set(["email_password", "email_otp", "oidc", "webauthn"]);
 
 export async function resolveSupabaseHumanIdentity(db, verifiedClaims, {
   authProvider

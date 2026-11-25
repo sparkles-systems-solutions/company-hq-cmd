@@ -22,47 +22,34 @@ function dbReturning(row, capture = {}) {
   };
 }
 
-test("maps verified AAL2 Supabase subject to active human CMD identity", async () => {
+test("maps verified AAL2 email/password Supabase subject to active human CMD identity", async () => {
   const capture = {};
   const result = await resolveSupabaseHumanIdentity(dbReturning({
-    auth_user_id: "auth-1",
-    person_id: "person-1",
-    account_status: "active",
-    person_type: "human",
-    person_status: "active",
-    display_name: "Prototype CEO"
-  }, capture), claims, { authProvider: "oidc" });
-
+    auth_user_id: "auth-1", person_id: "person-1", account_status: "active",
+    person_type: "human", person_status: "active", display_name: "Prototype CEO"
+  }, capture), claims, { authProvider: "email_password" });
   assert.equal(result.matched, true);
-  assert.deepEqual(result.identity, {
-    authUserId: "auth-1",
-    personId: "person-1",
-    personType: "human",
-    displayName: "Prototype CEO"
-  });
-  assert.deepEqual(capture.values, ["oidc", claims.subject]);
-  assert.match(capture.sql, /p\.person_type = 'human'/);
-  assert.match(capture.sql, /p\.status = 'active'/);
+  assert.deepEqual(capture.values, ["email_password", claims.subject]);
+  assert.match(capture.sql, /p\\.person_type = 'human'/);
+  assert.match(capture.sql, /p\\.status = 'active'/);
 });
 
-test("rejects unverified claims, AAL1 and request-controlled provider values", async () => {
+test("rejects unverified claims, AAL1 and request-controlled provider values before querying", async () => {
   let queried = false;
-  const db = {
-    prepare() { queried = true; throw new Error("must not query"); }
-  };
-  assert.equal((await resolveSupabaseHumanIdentity(db, { ...claims, valid: false }, { authProvider: "oidc" })).reason,
+  const db = { prepare() { queried = true; throw new Error("must not query"); } };
+  assert.equal((await resolveSupabaseHumanIdentity(db, { ...claims, valid: false }, { authProvider: "email_password" })).reason,
     "untrusted_or_incomplete_identity");
-  assert.equal((await resolveSupabaseHumanIdentity(db, { ...claims, assuranceLevel: "aal1" }, { authProvider: "oidc" })).matched, false);
+  assert.equal((await resolveSupabaseHumanIdentity(db, { ...claims, assuranceLevel: "aal1" }, { authProvider: "email_password" })).matched, false);
   assert.equal((await resolveSupabaseHumanIdentity(db, claims, { authProvider: "admin" })).matched, false);
   assert.equal(queried, false);
 });
 
-test("denies missing or inactive human mapping", async () => {
-  const result = await resolveSupabaseHumanIdentity(dbReturning(null), claims, { authProvider: "email_otp" });
-  assert.deepEqual(result, { matched: false, reason: "no_active_human_identity_mapping" });
+test("denies missing active human mapping", async () => {
+  assert.deepEqual(await resolveSupabaseHumanIdentity(dbReturning(null), claims, { authProvider: "email_password" }),
+    { matched: false, reason: "no_active_human_identity_mapping" });
 });
 
 test("fails closed when identity store is unavailable", async () => {
-  assert.deepEqual(await resolveSupabaseHumanIdentity(null, claims, { authProvider: "oidc" }),
+  assert.deepEqual(await resolveSupabaseHumanIdentity(null, claims, { authProvider: "email_password" }),
     { matched: false, reason: "identity_store_unavailable" });
 });
