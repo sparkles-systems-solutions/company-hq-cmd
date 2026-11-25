@@ -127,4 +127,4 @@ Before any Worker integration:
 5. Run full CI and inspect every test result.
 6. Update the integration gap review with tested facts and remaining limitations.
 
-The existing approval boundary remains unchanged: no production deployment, live D1 writes/migrations, real Supabase project or credentials, real user activation, real TOTP enrollment, or PR merge without separate explicit CEO approval. First-factor sign-in selection is still required before building the real sign-in/session-exchange flow.
+The existing approval boundary remains unchanged: no production deployment, live D1 writes/migrations, real Supabase project or credentials, real user activation, real TOTP enrollment, or PR merge without separate explicit CEO approval. The first-factor choice is now recorded as Email + Password with verified email; TOTP is the second factor. A real sign-in/session-exchange flow remains blocked pending separate approval for the non-production provider environment and the integration scope.
