@@ -36,7 +36,7 @@ Refer to `CMD_INTEGRATION_READINESS.md` for route-level requirements.
 
 ### Critical integration blockers
 
-1. **First factor is undecided.** Supabase is the selected provider and TOTP the selected second factor, but the first-factor method and verified sign-in identifier have not been selected. Do not infer or implement one.
+1. **First-factor decision is recorded.** CEO selected Email + Password with verified email as the sign-in identifier and TOTP as the required second factor. This is approved for isolated prototype design only; no live Supabase project, real user, or sign-in flow is authorized.
 2. **No session exchange exists.** A verified Supabase bearer is not exchanged for a hash-only CMD session or secure cookie.
 3. **Runtime lifecycle is not enforced.** Idle timeout, fixed absolute lifetime, timestamp validation, last-seen refresh, logout, global revocation, and rotation are not wired into Worker request handling.
 4. **CSRF is not integrated.** No CSRF token issuance or mutation-route enforcement exists; CORS does not currently allow `x-cmd-csrf`.
