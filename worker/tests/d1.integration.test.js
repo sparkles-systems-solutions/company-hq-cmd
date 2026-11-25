@@ -2,8 +2,8 @@ import test, { before, after } from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { Miniflare } from "miniflare";
-import worker from "../src/index.js";
-import { authorizeActor, sha256Hex } from "../src/authorization.js";
+import { authorizeActor } from "../src/index.js";
+import { sha256Hex } from "../src/authorization.js";
 
 const migrationFiles = [
   "../../migrations/0001_initial.sql",
@@ -52,7 +52,8 @@ async function seedFixtures() {
 before(async () => {
   mf = new Miniflare({
     modules: true,
-    script: "export default { fetch() { return new Response('Miniflare D1 integration runtime ready'); } };",
+    scriptPath: "./src/index.js",
+    compatibilityDate: "2026-11-25",
     d1Databases: { DB: "cmd-disposable-integration-db" }
   });
   db = await mf.getD1Database("DB");
@@ -80,26 +81,17 @@ test("Cloudflare workerd D1 runtime replays migrations 0001-0005", async () => {
 });
 
 test("Worker /api/me rejects missing and revoked sessions and accepts active human session", async () => {
-  const missing = await worker.fetch(
-    new Request("https://cmd.test/api/me"),
-    { DB: db, ALLOWED_ORIGIN: "https://cmd.test" }
-  );
+  const missing = await mf.dispatchFetch("https://cmd.test/api/me");
   assert.equal(missing.status, 401);
 
-  const revoked = await worker.fetch(
-    new Request("https://cmd.test/api/me", {
-      headers: { Cookie: `__Host-cmd_session=${revokedSessionToken}` }
-    }),
-    { DB: db, ALLOWED_ORIGIN: "https://cmd.test" }
-  );
+  const revoked = await mf.dispatchFetch("https://cmd.test/api/me", {
+    headers: { Cookie: `__Host-cmd_session=${revokedSessionToken}` }
+  });
   assert.equal(revoked.status, 401);
 
-  const active = await worker.fetch(
-    new Request("https://cmd.test/api/me", {
-      headers: { Cookie: `__Host-cmd_session=${rawSessionToken}` }
-    }),
-    { DB: db, ALLOWED_ORIGIN: "https://cmd.test" }
-  );
+  const active = await mf.dispatchFetch("https://cmd.test/api/me", {
+    headers: { Cookie: `__Host-cmd_session=${rawSessionToken}` }
+  });
   assert.equal(active.status, 200);
   const body = await active.json();
   assert.equal(body.actor.id, "test-human-ceo");
