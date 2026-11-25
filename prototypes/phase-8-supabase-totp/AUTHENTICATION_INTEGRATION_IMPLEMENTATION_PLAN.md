@@ -170,3 +170,7 @@ The next blocking decision is completion and explicit CEO approval of a named no
 ## Canonical protocol decision dependency
 
 Before implementation, review [AUTHENTICATION_PROTOCOL_DECISIONS.md](./AUTHENTICATION_PROTOCOL_DECISIONS.md). It contains the recommended direct bearer-token exchange, cookie SameSite policy, CSRF/CORS contract, audit atomicity requirement, and explicit CEO decision fields. These recommendations supersede neither the existing implementation nor the CEO approval gates until explicitly accepted. In particular, the current two-step exchange-key planner remains only a test contract and is not evidence of an implemented route.
+
+## Batch 12 protocol precedence clarification
+
+The earlier Stage 2 two-step exchange-key sequence and endpoint table in this plan are historical proposals and are **superseded as the current recommendation** by AUTHENTICATION_PROTOCOL_DECISIONS.md. That canonical record recommends a direct bearer-token POST /api/auth/session. The recommendation is still PENDING CEO DECISION; neither protocol is authorized for implementation. Do not implement the two-step endpoints from this plan unless the CEO explicitly selects that option. If the direct exchange is accepted, revise Stage 2, the endpoint table, acceptance matrix and no-go conditions, and reconcile the exchange-key planner/tests before any implementation approval. Cookie SameSite and CSRF details are also governed by the canonical decision record and remain pending.
