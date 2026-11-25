@@ -18,6 +18,78 @@ let db;
 let rawSessionToken;
 let revokedSessionToken;
 
+function splitSqlStatements(sql) {
+  const statements = [];
+  let buffer = "";
+  let quote = null;
+  let lineComment = false;
+  let blockComment = false;
+  let triggerStatement = false;
+
+  for (let i = 0; i < sql.length; i += 1) {
+    const char = sql[i];
+    const next = sql[i + 1];
+
+    if (lineComment) {
+      buffer += char;
+      if (char === "\n") lineComment = false;
+      continue;
+    }
+    if (blockComment) {
+      buffer += char;
+      if (char === "*" && next === "/") {
+        buffer += next;
+        i += 1;
+        blockComment = false;
+      }
+      continue;
+    }
+    if (quote) {
+      buffer += char;
+      if (char === quote && next === quote) {
+        buffer += next;
+        i += 1;
+      } else if (char === quote && sql[i - 1] !== "\\") {
+        quote = null;
+      }
+      continue;
+    }
+    if (char === "-" && next === "-") {
+      buffer += char + next;
+      i += 1;
+      lineComment = true;
+      continue;
+    }
+    if (char === "/" && next === "*") {
+      buffer += char + next;
+      i += 1;
+      blockComment = true;
+      continue;
+    }
+    if (char === "'" || char === '"' || char === "`") {
+      quote = char;
+      buffer += char;
+      continue;
+    }
+
+    buffer += char;
+    if (!triggerStatement && /^\s*CREATE\s+TRIGGER\b/i.test(buffer)) {
+      triggerStatement = true;
+    }
+
+    if (char === ";") {
+      if (triggerStatement && !/\bEND\s*;\s*$/i.test(buffer)) continue;
+      const statement = buffer.trim();
+      if (statement) statements.push(statement);
+      buffer = "";
+      triggerStatement = false;
+    }
+  }
+
+  if (buffer.trim()) statements.push(buffer.trim());
+  return statements;
+}
+
 async function seedFixtures() {
   await db.prepare(
     "INSERT INTO people (id, display_name, email, person_type, status) VALUES (?, ?, ?, 'human', 'active')"
@@ -63,7 +135,7 @@ before(async () => {
     const sql = await readFile(new URL(file, import.meta.url), "utf8");
     // D1 manages foreign-key enforcement itself and does not accept SQLite PRAGMA statements.
     const d1CompatibleSql = sql.replace(/^\s*PRAGMA\s+foreign_keys\s*=\s*ON\s*;\s*/gim, "");
-    await db.exec(d1CompatibleSql);
+    for (const statement of splitSqlStatements(d1CompatibleSql)) {\n      await db.prepare(statement).run();\n    }
   }
 
   await seedFixtures();
