@@ -42,6 +42,7 @@ Phase 0 foundation is being prepared on `foundation/phase-0`. This is not yet a 
 - [Authorization model and API enforcement design](docs/AUTHORIZATION_MODEL_API_ENFORCEMENT.md)
 - [Phase 4 authorization schema and migration validation](docs/PHASE4_MIGRATION_VALIDATION.md)
 - [Phase 5 Worker authorization foundation](docs/PHASE5_WORKER_AUTHORIZATION.md)
+- [Phase 7 authentication and session security design](docs/PHASE7_AUTHENTICATION_SESSION_SECURITY_DESIGN.md)
 - [Executive Team Batch 01 capability assessment](docs/EXECUTIVE_TEAM_BATCH01_CAPABILITY_ASSESSMENT.md)
 - [Disposable migration replay and safety validation](scripts/validate_migrations.py)
 - [Phase 6 migration replay validation report](docs/PHASE6_MIGRATION_REPLAY_VALIDATION.md)
