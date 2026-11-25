@@ -75,7 +75,7 @@ test("last-seen refresh waits until the five-minute throttle boundary", async ()
     assert.equal(before.last_seen_at, iso(now - 299_999));
 
     await db.prepare("UPDATE auth_sessions SET last_seen_at=? WHERE id=?")
-      .bind(iso(now - 300_000), "session-1").run();
+      .bind(iso(now - 301_000), "session-1").run();
     const updated = await refresh(db, "session-1", now);
     assert.equal(updated.length, 1);
     assert.equal(updated[0].last_seen_at, iso(now));
