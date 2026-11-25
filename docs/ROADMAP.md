@@ -25,3 +25,11 @@
 - Approved GitHub integrations, backups, monitoring, recovery drills, and production acceptance.
 
 No phase is complete solely because a screen or placeholder exists. Each feature requires working workflows, server-side validation, persistence, permissions, tests, and documentation.
+
+
+## Phase 7 — Authentication and session security design
+- Document CEO identity proofing, OIDC/PKCE sign-in, MFA, recovery and session lifecycle.
+- Identify schema gaps in migration 0005 and define a proposed additive authentication migration.
+- Define CSRF, CORS, cookie, rate-limit, audit and security acceptance requirements.
+- Keep provider selection and implementation pending CEO review.
+- No credentials, live migration, deployment or production changes are part of this design phase.
