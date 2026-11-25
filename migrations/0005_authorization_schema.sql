@@ -39,9 +39,9 @@ SELECT
   module_key || ' module ' || action_key || ' permission (catalogue only)',
   CASE WHEN action_key IN ('approve','execute') OR module_key IN ('FIN','SEC','SHARE') THEN 1 ELSE 0 END
 FROM module_catalogue
-CROSS JOIN
-  (SELECT 'read' AS action_key UNION ALL SELECT 'draft' UNION ALL SELECT 'propose'
-   UNION ALL SELECT 'test' UNION ALL SELECT 'approve' UNION ALL SELECT 'execute') AS actions;
+CROSS JOIN (
+  VALUES ('read'), ('draft'), ('propose'), ('test'), ('approve'), ('execute')
+) AS actions(action_key);
 
 CREATE TABLE IF NOT EXISTS role_permission_rules (
   id TEXT PRIMARY KEY,
