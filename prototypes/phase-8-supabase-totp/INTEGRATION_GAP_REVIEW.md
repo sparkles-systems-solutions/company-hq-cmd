@@ -9,6 +9,7 @@
 - `worker/src/request-security.js`
 - `worker/src/supabase-request-auth.js`
 - Existing Phase 8 README and session/request-boundary notes
+- Session lifecycle enforcement integration design
 - Disposable Miniflare D1 batch atomicity and concurrent-claim tests
 - Session lifecycle policy boundary tests
 - Current Worker CORS preflight contract tests
@@ -21,7 +22,9 @@ The current `authenticate()` query checks that a session is not revoked, its abs
 
 **Test evidence (pure helper only):** `session-lifecycle-boundaries.test.js` covers exact absolute-expiry rejection, the idle-timeout boundary, future `last_seen_at`, the ten-minute MFA freshness boundary, and the five-minute last-seen refresh threshold. These tests exercise the pure policy helper; they do not prove that `authenticate()` or any Worker route invokes it.
 
-**Required before session integration:** map D1 timestamp fields into the pure lifecycle evaluator; reject invalid/idle/expired sessions; update `last_seen_at` only when the throttle permits; preserve fixed `expires_at`. Make the read/refresh behavior safe under concurrent requests.
+**Design progress:** `SESSION_LIFECYCLE_ENFORCEMENT_DESIGN.md` now specifies the required request-pipeline order, expected D1-to-helper field mapping, monotonic last-seen refresh contract, MFA freshness handling, audit constraints, and required tests. It is design-only. The exact migration file and stored timestamp representation still need to be inspected and verified before code integration.
+
+**Required before session integration:** confirm the exact migration/schema and timestamp format; map D1 timestamp fields into the pure lifecycle evaluator; reject invalid/idle/expired sessions; update `last_seen_at` only when the throttle permits; preserve fixed `expires_at`. Make the read/refresh behavior safe under concurrent requests.
 
 ### 2. Supabase bearer verification is not connected to CMD session exchange
 
