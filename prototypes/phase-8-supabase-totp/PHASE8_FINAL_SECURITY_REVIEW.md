@@ -2,20 +2,21 @@
 
 **Review date:** 2026-11-25  
 **Branch:** `prototype/phase-8-supabase-totp`  
-**Reviewed head before this document commit:** `0867f13cfa513afb2e3c2ea4297c34c758f63d2c`  
+**Review scope:** source and documentation consistency audit; latest PR branch content reviewed during Batch 9  
 **Disposition:** Isolated prototype only — **NOT production ready**.
 
 ## 1. Executive assessment
 
-Phase 8 has a useful collection of security adapters, policy helpers, synthetic tests, disposable-database tests, and integration contracts. The verified CI run demonstrates that the worker test suite, JavaScript syntax checks, and disposable SQLite migration replay passed for code commit `e4f4708ba74268c76b5c96df2c51834a096025b6`.
+Phase 8 has a useful collection of security adapters, policy helpers, synthetic tests, disposable-database tests, and integration contracts. The latest code-bearing CI evidence available for this review is GitHub Actions run [#144](https://github.com/sparkles-systems-solutions/company-hq-cmd/actions/runs/45585460944), which passed syntax checks, unit tests, and disposable SQLite migration/safety checks for commit `2cf5e2ba02f296106e74845f1346629beead6534`.
 
 This evidence does **not** establish an end-to-end login, a deployed service, remote Cloudflare D1 behavior, or production security. The latest PR head at review time is later because documentation commits followed that tested code commit. The CI run is evidence for the code commit named above, not a claim that a new workflow ran against every later documentation-only commit.
 
 ## 2. Verified evidence and scope
 
-- GitHub Actions run [#119](https://github.com/sparkles-systems-solutions/company-hq-cmd/actions/runs/45570759987) completed successfully. Its worker-tests job completed setup, checkout, Node setup, dependency install, syntax check, unit tests, Python setup, and disposable SQLite migration/safety checks successfully.
 - Synthetic tests cover authorization decisions, JWT signature verification with locally generated keys, Email + Password trusted-response validation, verified-email enforcement, email_password subject mapping, AAL2/TOTP adapter behavior, password-reset/TOTP boundary, request boundary checks, session lifecycle helpers, pipeline ordering, D1 batch rollback/idempotency/rotation-claim behavior, and SQLite migration invariants.
-- GitHub Actions run [#130](https://github.com/sparkles-systems-solutions/company-hq-cmd/actions/runs/45575739849) passed for code commit `0cc7567391fbc0de557b14ebf3c9f0c5eff1d013`, including syntax, unit, and disposable SQLite migration/safety checks.
+- GitHub Actions run [#142](https://github.com/sparkles-systems-solutions/company-hq-cmd/actions/runs/45576892284) passed for code commit `d9a8005d08f04e0e64f8701b842b043b845897c0`, including syntax, unit, and disposable SQLite migration/safety checks.
+- GitHub Actions run [#144](https://github.com/sparkles-systems-solutions/company-hq-cmd/actions/runs/45585460944) passed for code commit `2cf5e2ba02f296106e74845f1346629beead6534`; the job steps for syntax check, unit tests, and disposable SQLite migration/safety checks all completed successfully.
+- Commits after `2cf5e2ba...` on the current PR branch are documentation-only; run #144 is not represented as testing the latest documentation head.
 - Miniflare and SQLite evidence is local/disposable. It is not remote D1 evidence.
 - Supabase and TOTP adapters are not connected to CMD session issuance or browser cookie handling.
 - The session lifecycle and pipeline contracts remain separate from the active Worker request handler.
@@ -88,3 +89,12 @@ A new pure `session-exchange-contract.js` planner and synthetic tests were added
 
 This is not an exchange implementation. It does not verify JWTs, consume keys, access D1, create session tokens, set cookies, or enter the Worker request path. GitHub Actions run [#142](https://github.com/sparkles-systems-solutions/company-hq-cmd/actions/runs/45576892284) subsequently passed on commit `d9a8005d08f04e0e64f8701b842b043b845897c0`, including syntax check, complete Worker unit tests, and disposable SQLite migration/safety checks. This is CI evidence for the isolated planner/tests, not end-to-end integration or remote D1 behavior. Atomicity, cookie delivery, CSRF/CORS wiring, runtime lifecycle, and remote D1 remain unverified.
 
+
+
+## 9. Batch 9 — consistency and PR review-readiness audit
+
+- Reconciled the stale first-factor-undecided statements in `INTEGRATION_GAP_REVIEW.md`; Email + Password with verified email and TOTP is the recorded design decision. Live sign-in remains separately gated.
+- Clarified in `SESSION_EXCHANGE_ATOMICITY_DESIGN.md` that exchange remains blocked pending separately approved integration scope and the required non-production environment.
+- Added the current #144 CI evidence above and explicitly distinguished the tested code commit from subsequent documentation-only commits.
+- Reviewed the current PR changed-file inventory. GitHub reports no submitted PR reviews and no inline review threads at the time of this audit.
+- The review found no basis to change the overall disposition: the prototype is not an integrated authentication system and is not production-ready. No source-code behavior, database, provider, secret, deployment, or PR merge was changed in this audit.
