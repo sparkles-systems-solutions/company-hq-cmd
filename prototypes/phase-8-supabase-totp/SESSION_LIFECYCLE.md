@@ -36,7 +36,5 @@ worker/tests/session-lifecycle.test.js uses synthetic timestamps only. It does n
 connect to Supabase, D1, a browser, a cookie jar or any live identity. No real
 session has been created and no credentials or MFA factors have been enrolled.
 
-## Outstanding CEO decision
-Supabase is selected as provider and TOTP as second factor. The first-factor method
-and verified sign-in identifier remain undecided. Select these before building the
-real sign-in flow; do not infer email/password or email-OTP.
+## Recorded CEO authentication decision
+Supabase is selected as provider. Email + Password with a verified email address is the first factor, and TOTP is the required second factor. This decision is for isolated prototype design only; it does not authorize a live provider project, real sign-in, session exchange, or user activation. Those steps require separate explicit approval.
