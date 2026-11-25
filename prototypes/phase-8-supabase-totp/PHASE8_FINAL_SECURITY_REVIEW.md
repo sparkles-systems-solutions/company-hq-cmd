@@ -81,3 +81,10 @@ This review authorizes no production deployment, Worker deployment, live D1 chan
 ## 7. Final disposition
 
 **Accepted as an isolated prototype/test foundation only. Not accepted as a complete authentication system, integrated CMD backend, staging release, or production release.**
+
+## 8. Additional review — session exchange planner
+
+A new pure `session-exchange-contract.js` planner and synthetic tests were added after the previously cited CI #130 run. The planner accepts only pre-verified trust/identity/MFA/browser-guard facts and a short-lived exchange-key hash; it rejects AAL1, unverified email, non-human/inactive identity, stale MFA, invalid identity UUIDs, and replay/expiry key states. It returns a non-secret plan only.
+
+This is not an exchange implementation. It does not verify JWTs, consume keys, access D1, create session tokens, set cookies, or enter the Worker request path. CI #130 does not cover these new files; a new workflow run must pass before claiming CI validation for them. Atomicity, cookie delivery, CSRF/CORS wiring, runtime lifecycle, and remote D1 remain unverified.
+
