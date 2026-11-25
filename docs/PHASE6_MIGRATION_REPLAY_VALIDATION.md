@@ -1,6 +1,6 @@
 # Phase 6 — Disposable Migration Replay & Authorization Schema Checks
 
-**Status:** Validation harness committed; execution against the current branch is pending CI confirmation. No live Cloudflare D1 database has been accessed or modified.
+**Status:** Disposable SQLite migration replay and safety invariant checks passed in GitHub Actions run #25 on 2026-11-25. Cloudflare D1 runtime integration remains pending. No live Cloudflare D1 database has been accessed or modified.
 
 ## 1. Source review completed
 
