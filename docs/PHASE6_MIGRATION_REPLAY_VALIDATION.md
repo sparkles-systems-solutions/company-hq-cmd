@@ -62,3 +62,17 @@ The GitHub Actions workflow was extended to run this harness alongside Worker sy
 6. Obtain CEO approval before any staging deployment or live D1 migration.
 
 **No migration is authorized for production by this report.**
+
+## 6. Miniflare workerd + D1 integration harness
+
+Added `worker/tests/d1.integration.test.js` and pinned the stable Miniflare 4 runtime in the Worker development dependencies. The CI workflow installs the test dependency before running tests.
+
+The integration suite:
+- Creates an isolated in-memory D1 database through Miniflare/workerd.
+- Replays migrations 0001–0005 using the D1 binding API.
+- Verifies expected catalogue and pending-member counts.
+- Calls the Worker identity handler with missing, revoked and active human sessions.
+- Executes the real `authorizeActor` function against the D1 binding.
+- Tests matching role+scope access, rejects a scope grant attached to a different role assignment, checks explicit deny precedence and MFA gating, and verifies audit rows.
+
+This is a Cloudflare-compatible local runtime simulation powered by `workerd`, not a remote Cloudflare account D1 database. Remote disposable D1 validation still requires a dedicated database and approved Cloudflare access. The suite must pass in CI before this stage is considered complete.
