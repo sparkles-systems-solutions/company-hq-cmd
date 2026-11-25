@@ -30,7 +30,7 @@ No-login dashboard sharing is a separate capability route, not a bypass through 
 
 ## Explicit integration blockers
 
-- First-factor login method and verified sign-in identifier not selected.
+- First-factor decision recorded: Email + Password with verified email identifier; TOTP second factor. This is a design-only decision and does not authorize a live provider project or sign-in.
 - Supabase bearer verification and TOTP step-up adapters are not connected to a CMD session exchange.
 - Session lifecycle pure helpers and pipeline contract are not integrated into `worker/src/index.js`.
 - No session issuance, rotation, logout, global revocation, or CSRF-token issuance route exists.
