@@ -40,3 +40,8 @@ Tests use Node's built-in test runner and do not require third-party packages.
 7. Keep share links and privileged execution disabled until separately reviewed.
 
 Do not deploy or connect production systems from this scaffold.
+
+
+## CI coverage note
+
+The pull-request workflow validates Worker syntax and unit tests plus the ordered SQL migration replay and authorization invariants in a disposable SQLite database. This is not a substitute for Cloudflare D1 integration testing.
