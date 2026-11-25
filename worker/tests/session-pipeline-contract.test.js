@@ -18,10 +18,15 @@ const validRow = (overrides = {}) => ({
 function harness(overrides = {}) {
   const events = [];
   const row = overrides.row === undefined ? validRow() : overrides.row;
+  let loadCount = 0;
   const deps = {
     sessionTokenHash: "synthetic-hash",
     now: NOW,
-    loadSession: async () => { events.push("session"); return row; },
+    loadSession: async () => {
+      loadCount += 1;
+      events.push(loadCount === 1 ? "session" : "session_recheck");
+      return row;
+    },
     isActiveHuman: async () => { events.push("identity"); return true; },
     refreshLastSeen: async () => { events.push("refresh"); return { meta: { changes: 1 } }; },
     authorize: async () => { events.push("authorize"); return { allowed: true }; },
@@ -36,14 +41,14 @@ test("valid request pipeline orders session, identity, lifecycle, authorization 
   const { deps, events } = harness();
   const result = await runSessionPipelineContract(deps);
   assert.deepEqual(result, { allowed: true, status: 200, reason: "authorized", data: ["synthetic"] });
-  assert.deepEqual(events, ["session", "identity", "authorize", "data"]);
+  assert.deepEqual(events, ["session", "identity", "session_recheck", "identity", "authorize", "data"]);
 });
 
 test("NULL last_seen_at falls back to issued_at and does not count as recent activity", async () => {
   const { deps, events } = harness({ row: validRow({ last_seen_at: null }) });
   const result = await runSessionPipelineContract(deps);
   assert.equal(result.allowed, true);
-  assert.deepEqual(events, ["session", "identity", "authorize", "data"]);
+  assert.deepEqual(events, ["session", "identity", "session_recheck", "identity", "authorize", "data"]);
 });
 
 
@@ -121,7 +126,7 @@ test("authorization denial prevents protected data access", async () => {
   });
   const result = await runSessionPipelineContract(deps);
   assert.deepEqual(result, { allowed: false, status: 403, reason: "no_scope" });
-  assert.deepEqual(events, ["session", "identity", "authorize"]);
+  assert.deepEqual(events, ["session", "identity", "session_recheck", "identity", "authorize"]);
 });
 
 test("fresh MFA uses the request's captured now and blocks authorization when stale", async () => {
@@ -150,4 +155,38 @@ test("lookup, identity, audit and protected-data failures fail closed", async (t
       assert.equal(result.reason, reason);
     });
   }
+});
+
+test("concurrent revocation or identity replacement is caught by the pre-authorization recheck", async (t) => {
+  await t.test("revoked after initial lookup", async () => {
+    const events = [];
+    const first = validRow();
+    const second = validRow({ revoked_at: iso(NOW - 1) });
+    let reads = 0;
+    const { deps } = harness({
+      loadSession: async () => { reads += 1; events.push(reads === 1 ? "session" : "session_recheck"); return reads === 1 ? first : second; },
+      isActiveHuman: async () => { events.push("identity"); return true; },
+      authorize: async () => { events.push("authorize"); return { allowed: true }; },
+      readProtectedData: async () => { events.push("data"); return ["synthetic"]; },
+      auditDenial: async (reason) => { events.push("audit:" + reason); }
+    });
+    const result = await runSessionPipelineContract(deps);
+    assert.equal(result.allowed, false);
+    assert.equal(result.reason, "revoked");
+    assert.deepEqual(events, ["session", "identity", "session_recheck", "identity", "audit:revoked"]);
+  });
+  await t.test("session identity changed", async () => {
+    const events = [];
+    let reads = 0;
+    const { deps } = harness({
+      loadSession: async () => { reads += 1; events.push(reads === 1 ? "session" : "session_recheck"); return reads === 1 ? validRow() : validRow({ id: "replacement-session" }); },
+      isActiveHuman: async () => { events.push("identity"); return true; },
+      authorize: async () => { events.push("authorize"); return { allowed: true }; },
+      readProtectedData: async () => { events.push("data"); return ["synthetic"]; }
+    });
+    const result = await runSessionPipelineContract(deps);
+    assert.equal(result.allowed, false);
+    assert.equal(result.reason, "session_identity_changed");
+    assert.deepEqual(events, ["session", "identity", "session_recheck"]);
+  });
 });
