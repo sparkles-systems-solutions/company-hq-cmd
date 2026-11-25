@@ -62,14 +62,14 @@ The current audit helper performs an individual insert. No session issuance or r
 
 - Supabase remains the selected identity provider.
 - TOTP remains the selected second factor.
-- First-factor sign-in method and verified sign-in identifier remain undecided. No first-factor method is inferred or implemented.
+- First-factor decision is recorded: Supabase Email + Password with verified email; TOTP is the second factor. This is design-only approval; no live provider project or sign-in is authorized.
 - No real Supabase project, account, credential, identity, or TOTP factor is created.
 - No migration is added or applied.
 - No Worker route integration, deployment, live D1 change, production configuration, or PR merge is authorized by this review.
 
 ## Next safe work
 
-Continue isolated tests and design review only. The first-factor decision is required before a real sign-in/session-exchange prototype can be built. Any staging or production work requires separate CEO approval.
+Continue isolated tests and design review only. The first-factor choice is settled for design, but live provider sign-in still requires separate explicit approval for a named non-production project and secret custody. Session-exchange implementation requires its own scope approval. Any staging or production work requires separate CEO approval.
 
 
 ### 5. Request-pipeline test contract added
