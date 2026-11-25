@@ -90,7 +90,7 @@ async function authenticate(request, env, requestId) {
 function isFreshMfa(value) {
   if (!value) return false;
   const normalized = value.includes("T") ? value : value.replace(" ", "T");
-  const hasTimezone = /(?:Z|[+-]\\d{2}:?\\d{2})$/i.test(normalized);
+  const hasTimezone = /(?:Z|[+-]\d{2}:?\d{2})$/i.test(normalized);
   const timestamp = Date.parse(normalized + (hasTimezone ? "" : "Z"));
   return Number.isFinite(timestamp) &&
     timestamp <= Date.now() + 30_000 &&
@@ -149,10 +149,15 @@ export async function authorizeActor(db, actor, permissionRequest, requestId) {
 
   const roleIds = rows.map((r) => r.role_id);
   const placeholders = roleIds.map(() => "?").join(",");
-  const bindings = [...roleIds, permissionRequest.module, permissionRequest.action];
+  const policyRows = await db.prepare(`
+    SELECT effect
+      FROM role_permission_rules
+     WHERE role_id IN (${placeholders})
+       AND module_key = ?
+       AND action_key = ?
+  `).bind(...roleIds, permissionRequest.module, permissionRequest.action).all();
 
-  const policies = (policyRows.results || []);
-  const hasDeny = policies.some((p) => p.effect === "deny");
+  const hasDeny = (policyRows.results || []).some((p) => p.effect === "deny");
 
   // Bind the permission rule to the exact same role assignment that owns the scope grant.
   // This prevents permission on one role being combined with another role's scope.
