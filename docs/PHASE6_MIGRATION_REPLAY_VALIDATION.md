@@ -9,7 +9,7 @@ Reviewed the migration chain and its referenced schema:
 - `0001_initial.sql`: confirms `people`, `roles`, `role_assignments`, `approvals`, and `audit_logs` columns used by later migrations and the Worker audit insert.
 - `0002_virtual_legal_advisor.sql`: seeds the Legal Advisor as a virtual member and role assignment.
 - `0003_virtual_ai_role_catalogue.sql`: defines the other 40 virtual roles and departments.
-- `0004_virtual_ai_member_onboarding.sql`: seeds virtual member identities and role assignments as pending, except the previously seeded Legal Advisor identity from 0002.
+- `0004_virtual_ai_member_onboarding.sql`: seeds the remaining virtual member identities and role assignments, then explicitly resets **all** virtual people—including the previously seeded Legal Advisor from 0002—to `pending`.
 - `0005_authorization_schema.sql`: creates module/permission catalogues, role rules, scoped grants, human authentication/session metadata, share-token metadata and approval controls.
 
 ## 2. Hardening changes made to migration 0005
@@ -28,7 +28,7 @@ Added `scripts/validate_migrations.py`. It uses Python's built-in SQLite engine 
 
 - All migrations execute without SQL errors.
 - Foreign-key enforcement is enabled and `PRAGMA foreign_key_check` reports no violations.
-- Expected roster/catalogue counts: 41 roles, 41 virtual people, 41 role assignments, and 60 permission catalogue entries.
+- Expected roster/catalogue counts: 41 roles, 41 virtual people, 41 role assignments, and 60 permission catalogue entries; all 41 virtual people must be `pending` after migration replay.
 - No role permission rules, scoped grants, login identities, sessions, share tokens or approval controls are seeded by the migration chain.
 - Virtual roster identities cannot be created as login users.
 - Virtual role catalogue entries cannot be granted approve/execute.
@@ -42,7 +42,8 @@ The GitHub Actions workflow was extended to run this harness alongside Worker sy
 
 - Migration source review: completed.
 - Validation script: committed.
-- CI execution of the new replay harness: **pending confirmation**.
+- Initial CI run #17: Worker syntax and all 8 unit tests passed; migration replay failed because the test incorrectly assumed the Legal Advisor remained active after migration 0004. The migration explicitly resets all virtual members to `pending`.
+- Corrective test change committed: the disposable test now explicitly simulates a CEO-approved status transition inside the in-memory database before testing the active-grant path, then restores the member to `pending`. CI confirmation for this corrected version is pending.
 - Cloudflare D1 compatibility: **not yet proven**. SQLite in-memory replay is a useful schema-level check, but it is not the Cloudflare D1 runtime.
 - Disposable D1 integration: pending.
 - Live D1: untouched.
