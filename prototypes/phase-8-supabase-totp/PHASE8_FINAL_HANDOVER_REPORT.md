@@ -53,3 +53,10 @@ Added a dependency-free, pure session-exchange planner and adversarial synthetic
 
 This increment was validated by GitHub Actions run [#142](https://github.com/sparkles-systems-solutions/company-hq-cmd/actions/runs/45576892284), which passed syntax, unit, and disposable SQLite migration/safety checks on commit `d9a8005d08f04e0e64f8701b842b043b845897c0`. This does not establish end-to-end exchange, remote D1 semantics, or production readiness. The session exchange, atomic combined D1 write, cookie delivery, CSRF/CORS integration, runtime lifecycle enforcement, and remote D1 verification remain outstanding.
 
+
+
+## Addendum — Batch 8 non-production governance
+
+Added two documentation-only controls: `CEO_NONPRODUCTION_PROJECT_APPROVAL_RECORD.md` and `NONPRODUCTION_SECRET_CUSTODY_CHECKLIST.md`. The approval record remains blank and marked NOT APPROVED / NOT CREATED. No Supabase project, secret, credential, identity, remote database, or deployment was created.
+
+The latest code-bearing CI evidence is GitHub Actions run [#144](https://github.com/sparkles-systems-solutions/company-hq-cmd/actions/runs/45585460944), successful on commit `2cf5e2ba02f296106e74845f1346629beead6534` for syntax, unit tests, and disposable SQLite migration/safety checks. Subsequent commits through the latest handover documentation changes are documentation-only; this run is not claimed as testing the latest docs head. PR #2 remains draft/open/unmerged and must not be merged without separate CEO approval.
