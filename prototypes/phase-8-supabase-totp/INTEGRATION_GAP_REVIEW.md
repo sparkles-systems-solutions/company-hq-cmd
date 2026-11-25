@@ -104,3 +104,12 @@ Expanded the disposable Miniflare D1 atomicity suite with two synthetic cases. F
 ### 10. No-login dashboard share security contract
 
 Added `SHARE_LINK_SECURITY_CONTRACT.md` defining the bearer-link threat model, CEO approval binding, token entropy/hash-only storage, seven-day maximum expiry, revocation, read-only dashboard and field allowlists, no-store/referrer controls, rate limiting, audit constraints, and acceptance tests. This is a design contract only: no schema, endpoint, token, dashboard data connection, or public share was created. Each concrete share still requires CEO approval of its exact dashboard, fields/filters, audience, expiry, and any network restrictions.
+
+
+### 11. Authorization denial and audit-failure coverage
+
+Expanded `authorization.test.js` to cover no active role assignments, virtual actors attempting approve/execute despite a scoped allow, privileged-module fresh-MFA denial, denial-audit persistence failure, and malformed server policy rejection before role/scope queries. These tests exercise `authorizeActor()` with a synthetic D1-style binding; they do not add or connect business API routes.
+
+### 12. CMD integration readiness and UAT handover
+
+Added `CMD_INTEGRATION_READINESS.md` to record the current API surface (`/api/health`, `/api/me`, CORS preflight, and 404 for other paths), mandatory server-owned route policy requirements, and blockers before protected route or no-login share integration. Added `PHASE8_UAT_AND_HANDOVER_CHECKLIST.md` to separate CI-backed synthetic tests from integrated UAT and deployment gates. The checklist explicitly marks end-to-end sign-in, session exchange, runtime lifecycle enforcement, route-level RBAC, share implementation, remote D1 verification, and staging/production as not completed.
