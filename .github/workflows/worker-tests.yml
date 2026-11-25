@@ -28,6 +28,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - name: Install Worker test dependencies
+        working-directory: worker
+        run: npm install --no-audit --no-fund
       - name: Syntax check
         working-directory: worker
         run: npm run check
