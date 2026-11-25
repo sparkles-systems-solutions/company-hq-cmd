@@ -27,7 +27,7 @@ export function validateSupabaseEmailPasswordSignIn(authResponse) {
 
   // Supabase Auth's trusted user response exposes email_confirmed_at.
   // Do not trust a browser-supplied flag or user_metadata value.
-  const confirmedAt = user.email_confirmed_at ?? user.confirmed_at;
+  const confirmedAt = user.email_confirmed_at;
   if (typeof confirmedAt !== "string" || confirmedAt.trim().length === 0) {
     return { accepted: false, reason: "verified_email_required" };
   }
