@@ -1,6 +1,6 @@
 # Phase 6 — Disposable Migration Replay & Authorization Schema Checks
 
-**Status:** Disposable SQLite migration replay, authorization safety invariants and expanded Worker policy tests passed in GitHub Actions run #30 on 2026-11-25. Cloudflare D1 runtime integration remains pending. No live Cloudflare D1 database has been accessed or modified.
+**Status:** Disposable SQLite migration replay, authorization safety invariants and 11 Worker unit tests passed in GitHub Actions run #30 on 2026-11-25. A new Miniflare/workerd D1 integration suite is now committed; its CI execution is pending confirmation. Remote Cloudflare D1 integration remains pending. No live Cloudflare D1 database has been accessed or modified.
 
 ## 1. Source review completed
 
@@ -75,4 +75,4 @@ The integration suite:
 - Executes the real `authorizeActor` function against the D1 binding.
 - Tests matching role+scope access, rejects a scope grant attached to a different role assignment, checks explicit deny precedence and MFA gating, and verifies audit rows.
 
-This is a Cloudflare-compatible local runtime simulation powered by `workerd`, not a remote Cloudflare account D1 database. Remote disposable D1 validation still requires a dedicated database and approved Cloudflare access. The suite must pass in CI before this stage is considered complete.
+This is a Cloudflare-compatible local runtime simulation powered by `workerd`, not a remote Cloudflare account D1 database. Remote disposable D1 validation still requires a dedicated database and approved Cloudflare access. The suite is committed and CI is configured to install Miniflare and run it as part of `npm test`. The latest Miniflare integration-test commit does not yet have a confirmed Actions result in the available status lookup; therefore its results remain **pending**.
