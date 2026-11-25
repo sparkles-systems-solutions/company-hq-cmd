@@ -11,7 +11,7 @@ The endpoint must not:
 - map identities by email fallback;
 - create CMD people, auth users, role assignments, or permissions;
 - accept anonymous or AAL1 tokens;
-- issue a CMD session until the first-factor method and verified sign-in identifier have been explicitly selected and approved;
+- issue a CMD session unless the separately approved session-exchange implementation gates are met; the CEO's design-only first-factor choice (Email + Password with verified email, plus TOTP) is recorded, but it does not authorize endpoint implementation;
 - log, return, persist, or otherwise expose the raw CMD session token except in the one Set-Cookie response.
 
 ## 2. One-time exchange sequence
@@ -26,7 +26,7 @@ The endpoint must not:
 8. Only after the database unit succeeds, return the raw token once in a Secure, HttpOnly, host-only cookie with Path=/ and SameSite=Strict. Use no-store response headers.
 9. If any validation or persistence step fails, issue no cookie and do not return token material.
 
-The first-factor method and verified sign-in identifier are still an explicit decision gate. This sequence is not permission to implement the exchange endpoint before that decision.
+The first-factor method is recorded for design-only use: Email + Password with verified email, plus TOTP. This sequence is not permission to implement the exchange endpoint; that requires separate explicit approval after the integration/security gates are reviewed.
 
 ## 3. D1 atomicity contract
 
@@ -101,7 +101,7 @@ Tests must inspect final database state after each injected failure. A test that
 ## 8. Implementation gates
 
 Before coding a real exchange:
-1. CEO selects the first-factor method and verified sign-in identifier.
+1. CEO separately approves the session-exchange implementation scope after reviewing the recorded Email + Password / verified-email / TOTP decision.
 2. Verify the pinned Miniflare and current D1 atomic batch behavior with a deliberate mid-batch failure in disposable D1.
 3. Define and test rate-limit storage and lockout behavior.
 4. Define CSRF token issuance and CORS preflight contract for the browser client.
