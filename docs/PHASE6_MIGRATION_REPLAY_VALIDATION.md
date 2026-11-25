@@ -1,78 +1,88 @@
 # Phase 6 — Disposable Migration Replay & Authorization Schema Checks
 
-**Status:** Disposable SQLite migration replay, authorization safety invariants and 11 Worker unit tests passed in GitHub Actions run #30 on 2026-11-25. A new Miniflare/workerd D1 integration suite is now committed; its CI execution is pending confirmation. Remote Cloudflare D1 integration remains pending. No live Cloudflare D1 database has been accessed or modified.
+**Status:** Passed in GitHub Actions on commit `7cd29a5769b985badb3ae0ab83bbdb33348a2477` (2026-11-25). Both push and pull-request `worker-tests` checks completed successfully. This includes syntax checks, Worker unit tests, migration replay/safety invariants, and the Miniflare/workerd D1 integration suite. Remote Cloudflare D1 integration remains pending. No live Cloudflare D1 database has been accessed or modified.
 
 ## 1. Source review completed
 
-Reviewed the migration chain and its referenced schema:
+Reviewed migrations 0001–0005 and their dependencies:
 
-- `0001_initial.sql`: confirms `people`, `roles`, `role_assignments`, `approvals`, and `audit_logs` columns used by later migrations and the Worker audit insert.
-- `0002_virtual_legal_advisor.sql`: seeds the Legal Advisor as a virtual member and role assignment.
-- `0003_virtual_ai_role_catalogue.sql`: defines the other 40 virtual roles and departments.
-- `0004_virtual_ai_member_onboarding.sql`: seeds the remaining virtual member identities and role assignments, then explicitly resets **all** virtual people—including the previously seeded Legal Advisor from 0002—to `pending`.
-- `0005_authorization_schema.sql`: creates module/permission catalogues, role rules, scoped grants, human authentication/session metadata, share-token metadata and approval controls.
+- `0001_initial.sql`: base people, roles, assignments, approvals, audit and operational tables.
+- `0002_virtual_legal_advisor.sql`: Legal Advisor virtual role/member seed.
+- `0003_virtual_ai_role_catalogue.sql`: remaining virtual role catalogue.
+- `0004_virtual_ai_member_onboarding.sql`: 41 virtual member/assignment records and onboarding checkpoints; explicitly resets all virtual people to `pending`.
+- `0005_authorization_schema.sql`: module/permission catalogues, role rules, scoped grants, human authentication/session metadata, share-token metadata and approval controls.
 
-## 2. Hardening changes made to migration 0005
+## 2. Migration safeguards
 
-The source review identified three database-level safeguards that should not depend solely on application code. Added:
+Migration 0005 includes database-level safeguards:
 
-1. Role permission rules cannot grant `approve` or `execute` to virtual role catalogue entries.
-2. A scoped grant cannot be inserted or later updated to active unless its grantor is an active human and the assigned role member is active.
-3. An approval control must be created unconsumed; consumption is a one-time update by an active human.
+1. Virtual role catalogue entries cannot receive `approve` or `execute` permission rules.
+2. Active scope grants require an active human grantor and an active assigned role member, on both insert and update.
+3. Approval controls must be created unconsumed and may only be consumed once by an active human.
 
-These constraints supplement, not replace, Worker authorization and CEO approval controls.
+These safeguards supplement Worker authorization and CEO approval controls.
 
-## 3. Automated disposable replay harness
+## 3. Disposable migration replay
 
-Added `scripts/validate_migrations.py`. It uses Python's built-in SQLite engine and replays migrations 0001–0005 in order in an in-memory database. It checks:
+`scripts/validate_migrations.py` replays migrations 0001–0005 in an in-memory SQLite database and verifies:
 
-- All migrations execute without SQL errors.
-- Foreign-key enforcement is enabled and `PRAGMA foreign_key_check` reports no violations.
-- Expected roster/catalogue counts: 41 roles, 41 virtual people, 41 role assignments, and 60 permission catalogue entries; all 41 virtual people must be `pending` after migration replay.
-- No role permission rules, scoped grants, login identities, sessions, share tokens or approval controls are seeded by the migration chain.
-- Virtual roster identities cannot be created as login users.
-- Virtual role catalogue entries cannot be granted approve/execute.
-- Pending role members cannot receive active scope grants, including by updating an initially pending grant.
-- Approval controls cannot be inserted already consumed and cannot be consumed twice.
-- Share tokens can be created in the disposable test only by a synthetic active human and within the seven-day expiry cap.
+- All migrations execute in order.
+- Foreign-key checks report no violations.
+- Expected counts: 11 departments, 41 roles, 41 virtual people, 41 role assignments and 60 permission catalogue entries.
+- All 41 virtual people remain `pending` after replay.
+- No role permission rules, scoped grants, login identities, sessions, share tokens or approval controls are seeded.
+- Virtual identities cannot be created as login users or receive privileged permissions.
+- Pending members cannot receive active scope grants, including through updates.
+- Approval controls cannot be inserted consumed or consumed twice.
+- Share-token test records obey active-human and seven-day expiry constraints.
 
-The GitHub Actions workflow was extended to run this harness alongside Worker syntax checks and unit tests. Its path filters include Worker source, migrations, validation scripts and the workflow itself.
+## 4. Miniflare/workerd D1 integration suite
 
-## 4. Verification status
+`worker/tests/d1.integration.test.js` uses Miniflare with an isolated local workerd D1 binding. It:
 
-- Migration source review: completed.
-- Validation script: committed.
-- Initial CI run #17: Worker syntax and all 8 unit tests passed; migration replay failed because the test incorrectly assumed the Legal Advisor remained active after migration 0004. The migration explicitly resets all virtual members to `pending`.
-- Corrective test change committed: the disposable test now explicitly simulates a CEO-approved status transition inside the in-memory database before testing the active-grant path, then restores the member to `pending`.
-- Corrected GitHub Actions run #25 (`45518706938`): full SQLite replay and safety invariant checks passed.
-- Subsequent Worker authorization review found an undefined `policyRows` reference in `authorizeActor`. It was corrected to retrieve role policy rows from D1 before applying deny-overrides-allow. MFA timezone-offset parsing was also corrected.
-- GitHub Actions run #30 (`45518871104`): syntax check passed, 11/11 Worker unit tests passed, and full migration replay/safety checks passed.
-- Cloudflare D1 compatibility: **not yet proven**. The Worker policy tests use a test double; they do not execute the SQL against Cloudflare D1. SQLite in-memory replay is a useful schema-level check, but it is not the Cloudflare D1 runtime.
-- Disposable D1 integration: pending.
+- Replays migrations 0001–0005 through the D1 binding API.
+- Verifies catalogue and pending-member counts.
+- Calls the real Worker `/api/me` handler with missing, revoked and active synthetic human sessions.
+- Exercises `authorizeActor` against D1.
+- Tests matching role+scope access and rejects a scope grant attached to a different role assignment.
+- Tests explicit-deny precedence, MFA gating and audit writes.
+
+The migration statement splitter handles SQL comments and trigger bodies; migration execution errors include the file, statement index and statement preview to improve diagnosis. Migration 0005's permission catalogue seed uses a VALUES CTE compatible with the bundled workerd SQLite limits.
+
+## 5. CI verification
+
+Latest commit: `7cd29a5769b985badb3ae0ab83bbdb33348a2477`.
+
+- GitHub Actions check run `138917614136`: **success**.
+- GitHub Actions check run `138917592289`: **success**.
+- Both checks completed on 2026-11-25.
+- The workflow runs Worker syntax checks, the combined unit/integration test suite, and the disposable SQLite migration/safety validation.
+
+Earlier issues resolved:
+- A test assumption was corrected because migration 0004 intentionally resets all virtual members to `pending`.
+- Miniflare module detection was made explicit.
+- Compatibility date was aligned with the bundled workerd runtime.
+- The D1 test migration runner now executes SQL statements individually and recognizes commented CREATE TRIGGER declarations.
+- A six-way UNION seed was replaced with a VALUES CTE to avoid the bundled SQLite compound-select limit.
+- An undefined `policyRows` reference in `authorizeActor` was fixed by loading role policy rows from D1; MFA timezone-offset parsing was corrected.
+
+## 6. Remaining validation boundary
+
+- Local workerd/Miniflare D1 integration: **passed in CI**.
+- Disposable remote Cloudflare D1 validation: **pending**.
 - Live D1: untouched.
+- Worker deployment: not performed.
 - Production: untouched.
 
-## 5. Next requirements
+Local workerd validation is stronger than a D1 mock but is not proof of behavior against a remote Cloudflare account/database or a deployed Worker.
 
-1. Create or identify a dedicated disposable Cloudflare D1 database; do not use the production database.
-2. Replay migrations 0001–0005 in order using the Cloudflare D1 migration runner.
-3. Verify D1 JSON functions, triggers, date/time behavior, foreign keys and Worker queries.
-4. Run Worker integration tests against the actual D1 binding for session lookup, role-policy retrieval, same-assignment scope matching, audit failure and deny behavior.
-5. Test authentication, session revocation, MFA and share-token restrictions against D1.
-6. Obtain CEO approval before any staging deployment or live D1 migration.
+## 7. Next requirements
 
-**No migration is authorized for production by this report.**
+1. Use a dedicated disposable Cloudflare D1 database, never production, for remote compatibility validation.
+2. Replay migrations 0001–0005 through Cloudflare's D1 migration runner.
+3. Verify triggers, foreign keys, timestamp behavior and all Worker queries against that database.
+4. Complete authentication, session issuance/revocation, MFA enrollment/verification and rate-limit testing.
+5. Keep no-login share links disabled until server-side field allowlisting, filter enforcement, expiry, revocation, rate limiting and audit behavior are tested.
+6. Obtain CEO approval before staging deployment, credential creation, security-sensitive changes or any live D1 migration.
 
-## 6. Miniflare workerd + D1 integration harness
-
-Added `worker/tests/d1.integration.test.js` and pinned the stable Miniflare 4 runtime in the Worker development dependencies. The CI workflow installs the test dependency before running tests.
-
-The integration suite:
-- Creates an isolated in-memory D1 database through Miniflare/workerd.
-- Replays migrations 0001–0005 using the D1 binding API.
-- Verifies expected catalogue and pending-member counts.
-- Calls the Worker identity handler with missing, revoked and active human sessions.
-- Executes the real `authorizeActor` function against the D1 binding.
-- Tests matching role+scope access, rejects a scope grant attached to a different role assignment, checks explicit deny precedence and MFA gating, and verifies audit rows.
-
-This is a Cloudflare-compatible local runtime simulation powered by `workerd`, not a remote Cloudflare account D1 database. Remote disposable D1 validation still requires a dedicated database and approved Cloudflare access. The suite is committed and CI is configured to install Miniflare and run it as part of `npm test`. The latest Miniflare integration-test commit does not yet have a confirmed Actions result in the available status lookup; therefore its results remain **pending**.
+**No migration or deployment is authorized for production by this report.**
