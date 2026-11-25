@@ -62,3 +62,6 @@ The CEO has selected Email + Password and approved TOTP for isolated prototype d
 ## Authentication integration implementation plan
 
 See [AUTHENTICATION_INTEGRATION_IMPLEMENTATION_PLAN.md](./AUTHENTICATION_INTEGRATION_IMPLEMENTATION_PLAN.md) for the staged technical path from governance approval through provider wiring, one-time session exchange, atomic D1 commit, cookie/CSRF integration, lifecycle enforcement, route RBAC, UAT, and release gates. This is design documentation only; it does not authorize project creation, secrets, remote D1 writes, deployment, real-user activation, PR readiness, or merge.
+## Pre-integration readiness review
+
+See [PREINTEGRATION_READINESS_REVIEW.md](./PREINTEGRATION_READINESS_REVIEW.md) for the source-grounded review of current Worker wiring, lifecycle enforcement, CSRF/CORS, route authorization, exchange-protocol consistency, cookie policy, and D1 verification gaps. Its disposition is NOT READY for runtime authentication integration; it does not change the existing approval boundaries.
