@@ -70,3 +70,12 @@ The current audit helper performs an individual insert. No session issuance or r
 ## Next safe work
 
 Continue isolated tests and design review only. The first-factor decision is required before a real sign-in/session-exchange prototype can be built. Any staging or production work requires separate CEO approval.
+
+
+### 5. Request-pipeline test contract added
+
+Added `prototypes/phase-8-supabase-totp/SESSION_PIPELINE_TEST_CONTRACT.md` as a design/test-only artifact. It defines the required ordered stages from route/cookie handling through identity, lifecycle evaluation, conditional refresh, actor construction, authorization, and protected data access.
+
+The contract adds an event-trace matrix for missing/malformed cookies, inactive or virtual identities, malformed/revoked/idle/expired sessions, NULL last-seen fallback, refresh-not-due, refresh success/failure/zero-row/missing metadata, authorization denial, and authorized data access. It requires proof that lifecycle failures never trigger role/permission/scope queries or protected data reads, and that refresh failures remain fail-closed.
+
+The contract also records audit leakage checks, same-request timestamp consistency for MFA, fixed absolute expiry, and the current schema's nullable `last_seen_at` behavior. This is a specification only: no pipeline adapter, Worker integration, D1 mutation, cookie issuance, or protected business route has been implemented. The new scenarios are not yet test evidence and remain acceptance gates for a later isolated code change.
