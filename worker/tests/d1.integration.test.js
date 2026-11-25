@@ -73,7 +73,10 @@ function splitSqlStatements(sql) {
     }
 
     buffer += char;
-    if (!triggerStatement && /^\s*CREATE\s+TRIGGER\b/i.test(buffer)) {
+    // Ignore leading SQL comments when identifying CREATE TRIGGER. Several
+    // migrations document trigger purpose immediately before the statement.
+    const leadingSql = buffer.replace(/^(?:\s|--[^\n]*\n|\/\*[\s\S]*?\*\/)+/, "");
+    if (!triggerStatement && /^CREATE\s+TRIGGER\b/i.test(leadingSql)) {
       triggerStatement = true;
     }
 
