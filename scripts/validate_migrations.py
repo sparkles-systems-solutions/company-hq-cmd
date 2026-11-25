@@ -49,6 +49,10 @@ def main():
     assert counts["virtual_people"] == 41, counts
     assert counts["role_assignments"] == 41, counts
     assert counts["permission_catalogue"] == 60, counts
+    pending_virtual = db.execute(
+        "SELECT COUNT(*) FROM people WHERE person_type='virtual' AND status='pending'"
+    ).fetchone()[0]
+    assert pending_virtual == 41, f"Expected all 41 virtual members pending after migrations; found {pending_virtual}"
     for key in ("role_permission_rules", "role_scope_grants", "auth_users", "auth_sessions", "share_tokens", "approval_controls"):
         assert counts[key] == 0, f"Expected no seeded {key}: {counts}"
 
