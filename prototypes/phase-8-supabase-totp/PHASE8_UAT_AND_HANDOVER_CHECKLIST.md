@@ -21,7 +21,7 @@ These checks use synthetic identities, locally generated keys, mocks, and dispos
 
 ## B. Integrated UAT — not yet executable
 
-- [ ] CEO selects first-factor method and verified sign-in identifier
+- [x] CEO selects first-factor method and verified sign-in identifier (Email + Password; verified email; TOTP second factor) — design-only approval
 - [ ] Approved isolated Supabase test project/configuration and secrets
 - [ ] End-to-end sign-in and TOTP challenge/verification
 - [ ] One-time Supabase-to-CMD session exchange; hash-only session storage
