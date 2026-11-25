@@ -113,3 +113,18 @@ Expanded `authorization.test.js` to cover no active role assignments, virtual ac
 ### 12. CMD integration readiness and UAT handover
 
 Added `CMD_INTEGRATION_READINESS.md` to record the current API surface (`/api/health`, `/api/me`, CORS preflight, and 404 for other paths), mandatory server-owned route policy requirements, and blockers before protected route or no-login share integration. Added `PHASE8_UAT_AND_HANDOVER_CHECKLIST.md` to separate CI-backed synthetic tests from integrated UAT and deployment gates. The checklist explicitly marks end-to-end sign-in, session exchange, runtime lifecycle enforcement, route-level RBAC, share implementation, remote D1 verification, and staging/production as not completed.
+
+
+### 13. CEO-selected email/password first-factor contract
+
+The CEO selected Supabase Auth Email + Password with a verified email address as the first factor and TOTP as the second factor. This is design-only approval. Added `supabase-email-password-contract.js` to validate a trusted Supabase Auth SDK response: UUID subject, non-empty email, explicit `email_confirmed_at`, and a returned provider session. It returns only a minimal result and does not return access/refresh tokens, verify JWT signatures, issue CMD sessions, or authorize access. Email verification is not inferred from `user_metadata` or a browser-supplied flag.
+
+Added synthetic tests for confirmed/unconfirmed email, provider errors, malformed subject, missing session, token non-disclosure, and the rule that a confirmed email/password response with AAL1 is still denied by the AAL2 claim gate.
+
+### 14. Email/password identity provider mapping and password-reset boundary
+
+The trusted server-side identity mapping allowlist now includes `email_password`; the request cannot select this provider value. Synthetic tests verify exact subject mapping to an existing active human identity and fail-closed behavior for AAL1, invalid claims, unknown provider values, and missing mappings.
+
+Added a TOTP test proving that an AAL1 session still requires a TOTP challenge and successful post-challenge AAL2 confirmation. Password reset itself is not implemented; it must never be treated as TOTP recovery or as an MFA bypass.
+
+**CI evidence:** GitHub Actions run [#130](https://github.com/sparkles-systems-solutions/company-hq-cmd/actions/runs/45575739849) completed successfully for code commit `0cc7567391fbc0de557b14ebf3c9f0c5eff1d013`. The worker-tests job passed syntax check, unit tests, and disposable SQLite migration/safety checks. Subsequent changes to the UAT and gap-review documents are documentation-only.
