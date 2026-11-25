@@ -23,6 +23,7 @@ export function evaluateSessionLifecycle(session, now = Date.now()) {
   const lastSeenAt = toEpochMs(session.lastSeenAt || session.issuedAt);
   if (issuedAt === null || expiresAt === null || lastSeenAt === null) return { valid: false, reason: "invalid_timestamps" };
   if (issuedAt > now + 30000) return { valid: false, reason: "issued_in_future" };
+  if (expiresAt <= issuedAt || lastSeenAt < issuedAt) return { valid: false, reason: "invalid_timestamp_order" };
   if (expiresAt <= now) return { valid: false, reason: "absolute_expiry" };
   if (expiresAt - issuedAt > SESSION_POLICY.absoluteLifetimeSeconds * 1000) return { valid: false, reason: "absolute_lifetime_exceeded" };
   if (lastSeenAt > now + 30000) return { valid: false, reason: "last_seen_in_future" };
