@@ -9,7 +9,7 @@
 - Exclusions: production deployment, real user activation, live D1 changes, production secrets, and PR merge.
 
 ## What this prototype validates
-This prototype defines an independently testable acceptance gate for claims received **after** cryptographic JWT verification. It does not decode or trust an unverified JWT, issue CMD sessions, or grant CMD permissions.
+This prototype now includes a `jose`-based JWT signature verifier against the project's asymmetric Supabase JWKS, followed by an independently testable AAL2 claims gate. It does not issue CMD sessions or grant CMD permissions. The verifier fails closed for legacy symmetric signing configurations; those require a separately reviewed Auth-server verification path.
 
 Expected verified Supabase access-token claims:
 - Exact project issuer: https://<project-ref>.supabase.co/auth/v1
@@ -20,6 +20,12 @@ Expected verified Supabase access-token claims:
 - Authenticator assurance level: aal2
 
 The Worker must verify JWT signature, issuer, audience, expiry and key rotation against the project's trusted JWKS before calling this claim gate. This gate is not a substitute for signature verification.
+
+## JWT verification implemented in the prototype
+
+`worker/src/supabase-jwt-verifier.js` validates the configured HTTPS Supabase project URL, retrieves the project's Auth JWKS, and verifies signature, exact issuer, `authenticated` audience, expiry, and an explicit algorithm allowlist using `jose`. It then requires the AAL2 claim, UUID-shaped subject/session identifiers, and rejects anonymous identities. The JWKS resolver is cached by project URL. Tests use generated local ES256 keys; no network or Supabase credentials are needed.
+
+The verifier is not yet wired into the Worker request handler or CMD session creation. It must be integrated only after the remaining session/CSRF/audit review.
 
 ## TOTP flow for a disposable Supabase project
 1. Create a separate Supabase development project; do not use production.
