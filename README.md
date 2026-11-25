@@ -65,3 +65,8 @@ Phase 0 foundation is being prepared on `foundation/phase-0`. This is not yet a 
 - [Authorization schema migration draft](migrations/0005_authorization_schema.sql)
 
 All migrations are source files only until reviewed and applied to a designated test database. No live D1 activation is claimed. The Worker authorization scaffold is not deployed; it exposes only health and authenticated identity endpoints and has no business CRUD or execution routes.
+
+
+### Local D1 integration testing
+
+The Worker test suite includes a Miniflare/workerd-backed disposable D1 integration suite. Run it from `worker/` with `npm install && npm test`. This uses local test data only and does not connect to a Cloudflare account or production database.
