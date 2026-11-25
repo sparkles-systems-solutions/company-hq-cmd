@@ -135,7 +135,9 @@ before(async () => {
     const sql = await readFile(new URL(file, import.meta.url), "utf8");
     // D1 manages foreign-key enforcement itself and does not accept SQLite PRAGMA statements.
     const d1CompatibleSql = sql.replace(/^\s*PRAGMA\s+foreign_keys\s*=\s*ON\s*;\s*/gim, "");
-    for (const statement of splitSqlStatements(d1CompatibleSql)) {\n      await db.prepare(statement).run();\n    }
+    for (const statement of splitSqlStatements(d1CompatibleSql)) {
+      await db.prepare(statement).run();
+    }
   }
 
   await seedFixtures();
