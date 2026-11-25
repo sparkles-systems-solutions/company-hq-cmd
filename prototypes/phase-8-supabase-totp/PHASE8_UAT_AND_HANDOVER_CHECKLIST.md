@@ -54,3 +54,14 @@ These checks use synthetic identities, locally generated keys, mocks, and dispos
 Do not describe Phase 8 as production-ready or complete authentication. Current verified status is isolated adapter/helper/test coverage plus design documents. The first-factor choice is recorded for design-only use. Session exchange, runtime lifecycle enforcement, real route integration, share implementation, remote D1 verification, and deployment remain outstanding.
 
 Production deployment, real user activation, live D1 changes, real TOTP enrollment, and PR merge each require their own explicit approval.
+
+## E. Additional isolated exchange-planner checks (code added after CI #130)
+
+- [ ] Run CI on the new session-exchange planner/test commit before marking these tests CI-verified.
+- [x] Pure planner requires trusted JWT verification and issuer/audience/expiry gate results.
+- [x] Rejects AAL1, unapproved provider, unverified email, inactive/non-human mapping, malformed UUIDs, and stale MFA.
+- [x] Requires browser mutation guard success and a short-lived SHA-256 exchange-key hash.
+- [x] Rejects consumed/replayed, expired, malformed, and overlong exchange keys.
+- [x] Returns only a non-secret plan; no token, cookie, D1 write, exchange-key consume, or route integration.
+- [ ] End-to-end exchange, cookie issuance, D1 atomic commit, and browser CSRF/CORS integration remain not implemented.
+
