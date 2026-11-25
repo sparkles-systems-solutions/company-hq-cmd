@@ -27,6 +27,8 @@ The Worker must verify JWT signature, issuer, audience, expiry and key rotation 
 
 The verifier is not yet wired into the Worker request handler or CMD session creation. It must be integrated only after the remaining session/CSRF/audit review.
 
+`worker/src/supabase-totp.js` now contains a mock-testable step-up adapter. It checks the Supabase AAL state, requires exactly one already-verified TOTP factor, requests a challenge, verifies the six-digit code, and rechecks that the resulting session is AAL2. It fails closed on missing/multiple factors and provider errors. It does not enroll or remove factors, display QR codes, or establish a CMD session.
+
 ## TOTP flow for a disposable Supabase project
 1. Create a separate Supabase development project; do not use production.
 2. Disable public sign-up and invite only a designated test identity.
