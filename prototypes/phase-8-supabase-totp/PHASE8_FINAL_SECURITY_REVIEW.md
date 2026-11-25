@@ -14,7 +14,8 @@ This evidence does **not** establish an end-to-end login, a deployed service, re
 ## 2. Verified evidence and scope
 
 - GitHub Actions run [#119](https://github.com/sparkles-systems-solutions/company-hq-cmd/actions/runs/45570759987) completed successfully. Its worker-tests job completed setup, checkout, Node setup, dependency install, syntax check, unit tests, Python setup, and disposable SQLite migration/safety checks successfully.
-- Synthetic tests cover authorization decisions, JWT signature verification with locally generated keys, AAL2/TOTP adapter behavior, exact provider-subject mapping, request boundary checks, session lifecycle helpers, pipeline ordering, D1 batch rollback/idempotency/rotation-claim behavior, and SQLite migration invariants.
+- Synthetic tests cover authorization decisions, JWT signature verification with locally generated keys, Email + Password trusted-response validation, verified-email enforcement, email_password subject mapping, AAL2/TOTP adapter behavior, password-reset/TOTP boundary, request boundary checks, session lifecycle helpers, pipeline ordering, D1 batch rollback/idempotency/rotation-claim behavior, and SQLite migration invariants.
+- GitHub Actions run [#130](https://github.com/sparkles-systems-solutions/company-hq-cmd/actions/runs/45575739849) passed for code commit `0cc7567391fbc0de557b14ebf3c9f0c5eff1d013`, including syntax, unit, and disposable SQLite migration/safety checks.
 - Miniflare and SQLite evidence is local/disposable. It is not remote D1 evidence.
 - Supabase and TOTP adapters are not connected to CMD session issuance or browser cookie handling.
 - The session lifecycle and pipeline contracts remain separate from the active Worker request handler.
