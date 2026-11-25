@@ -10,7 +10,7 @@
 - Required assurance before CMD access: **AAL2**
 - Scope: isolated prototype design and synthetic/local tests only
 
-See `CEO_EMAIL_PASSWORD_TOTP_DECISION.md` for the CEO decision and `EMAIL_PASSWORD_TOTP_FLOW_CONTRACT.md` for ordered acceptance rules and synthetic test cases.
+See `CEO_EMAIL_PASSWORD_TOTP_DECISION.md` for the CEO decision and `EMAIL_PASSWORD_TOTP_FLOW_CONTRACT.md` for ordered acceptance rules and synthetic test cases. See `NONPRODUCTION_SUPABASE_READINESS.md` for the project-isolation and secret-handling plan; it is a checklist only and does not authorize project creation.
 
 ## What this prototype validates
 This prototype includes a `jose`-based JWT signature verifier against the project's asymmetric Supabase JWKS, followed by an independently testable AAL2 claims gate. It does not issue CMD sessions or grant CMD permissions. The verifier fails closed for legacy symmetric signing configurations; those require a separately reviewed Auth-server verification path.
