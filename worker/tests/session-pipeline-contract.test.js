@@ -49,7 +49,7 @@ test("NULL last_seen_at falls back to issued_at and does not count as recent act
 test("lifecycle denials never refresh, authorize, or read protected data", async (t) => {
   const scenarios = [
     ["revoked", { revoked_at: iso(NOW - 1) }, "revoked"],
-    ["idle", { last_seen_at: iso(NOW - 31 * 60_000) }, "idle_timeout"],
+    ["idle", { issued_at: iso(NOW - 32 * 60_000), last_seen_at: iso(NOW - 31 * 60_000) }, "idle_timeout"],
     ["expired", { expires_at: iso(NOW) }, "absolute_expiry"],
     ["malformed issue time", { issued_at: "not-a-date" }, "invalid_timestamps"],
     ["future last seen", { last_seen_at: iso(NOW + 31_000) }, "last_seen_in_future"]
