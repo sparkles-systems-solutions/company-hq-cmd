@@ -11,6 +11,8 @@ on:
   pull_request:
     paths:
       - "worker/**"
+      - "migrations/**"
+      - "scripts/**"
       - ".github/workflows/worker-tests.yml"
 
 permissions:
