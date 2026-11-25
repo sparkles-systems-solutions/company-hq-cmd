@@ -190,3 +190,78 @@ test("concurrent revocation or identity replacement is caught by the pre-authori
     assert.deepEqual(events, ["session", "identity", "session_recheck"]);
   });
 });
+
+
+test("pre-authorization recheck failures and changed security state fail closed", async (t) => {
+  const cases = [
+    ["recheck lookup error", async ({ reads }) => {
+      const events = [];
+      const { deps } = harness({
+        loadSession: async () => { reads.count += 1; events.push(reads.count === 1 ? "session" : "session_recheck"); if (reads.count === 2) throw new Error("db"); return validRow(); },
+        isActiveHuman: async () => { events.push("identity"); return true; },
+        authorize: async () => { events.push("authorize"); return { allowed: true }; },
+        readProtectedData: async () => { events.push("data"); return []; }
+      });
+      const result = await runSessionPipelineContract(deps);
+      assert.equal(result.reason, "session_recheck_failed");
+      assert.equal(events.includes("authorize"), false);
+      assert.equal(events.includes("data"), false);
+    }],
+    ["identity becomes inactive", async ({ reads }) => {
+      const events = [];
+      const { deps } = harness({
+        loadSession: async () => { reads.count += 1; events.push(reads.count === 1 ? "session" : "session_recheck"); return validRow(); },
+        isActiveHuman: async () => { events.push("identity"); return reads.count === 1; },
+        authorize: async () => { events.push("authorize"); return { allowed: true }; },
+        readProtectedData: async () => { events.push("data"); return []; }
+      });
+      const result = await runSessionPipelineContract(deps);
+      assert.equal(result.reason, "inactive_or_nonhuman_identity");
+      assert.equal(events.includes("authorize"), false);
+      assert.equal(events.includes("data"), false);
+    }],
+    ["identity recheck error", async ({ reads }) => {
+      const events = [];
+      const { deps } = harness({
+        loadSession: async () => { reads.count += 1; events.push(reads.count === 1 ? "session" : "session_recheck"); return validRow(); },
+        isActiveHuman: async () => { events.push("identity"); if (reads.count === 2) throw new Error("db"); return true; },
+        authorize: async () => { events.push("authorize"); return { allowed: true }; },
+        readProtectedData: async () => { events.push("data"); return []; }
+      });
+      const result = await runSessionPipelineContract(deps);
+      assert.equal(result.reason, "identity_recheck_failed");
+      assert.equal(events.includes("authorize"), false);
+      assert.equal(events.includes("data"), false);
+    }],
+    ["person identity replaced", async ({ reads }) => {
+      const events = [];
+      const { deps } = harness({
+        loadSession: async () => { reads.count += 1; events.push(reads.count === 1 ? "session" : "session_recheck"); return validRow(reads.count === 1 ? {} : { person_id: "different-person" }); },
+        isActiveHuman: async () => { events.push("identity"); return true; },
+        authorize: async () => { events.push("authorize"); return { allowed: true }; },
+        readProtectedData: async () => { events.push("data"); return []; }
+      });
+      const result = await runSessionPipelineContract(deps);
+      assert.equal(result.reason, "session_identity_changed");
+      assert.equal(events.includes("authorize"), false);
+      assert.equal(events.includes("data"), false);
+    }],
+    ["MFA becomes stale at recheck", async ({ reads }) => {
+      const events = [];
+      const { deps } = harness({
+        needsFreshMfa: true,
+        loadSession: async () => { reads.count += 1; events.push(reads.count === 1 ? "session" : "session_recheck"); return validRow({ mfa_verified_at: reads.count === 1 ? iso(NOW - 60_000) : iso(NOW - 10 * 60_000 - 1) }); },
+        isActiveHuman: async () => { events.push("identity"); return true; },
+        authorize: async () => { events.push("authorize"); return { allowed: true }; },
+        readProtectedData: async () => { events.push("data"); return []; }
+      });
+      const result = await runSessionPipelineContract(deps);
+      assert.equal(result.reason, "fresh_mfa_required");
+      assert.equal(events.includes("authorize"), false);
+      assert.equal(events.includes("data"), false);
+    }]
+  ];
+  for (const [name, run] of cases) {
+    await t.test(name, async () => run({ reads: { count: 0 } }));
+  }
+});
