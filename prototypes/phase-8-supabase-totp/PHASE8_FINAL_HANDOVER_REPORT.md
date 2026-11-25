@@ -20,7 +20,7 @@ No live identity provider, real user, production credential, remote D1 database,
 
 ## Not delivered / outstanding
 
-- First-factor login method and verified sign-in identifier.
+- Live Supabase sign-in remains outstanding. The CEO has selected Email + Password with verified email as identifier and TOTP as the second factor for isolated prototype design only.
 - End-to-end Supabase sign-in, TOTP enrollment/challenge in a real isolated project, and CMD session exchange.
 - Runtime session lifecycle, cookie issuance/clearing, logout, rotation, global revocation, and CSRF integration.
 - Protected business API routes, route-level RBAC, data-scope enforcement, and field-level projection.
@@ -39,7 +39,7 @@ The work is suitable for continued isolated engineering and review with syntheti
 
 ## CEO decisions needed to unblock the next engineering phase
 
-1. Choose the first-factor sign-in method and verified sign-in identifier.
+1. First-factor decision is complete: Email + Password with verified email and TOTP. Next, separately approve an isolated non-production Supabase project and secret handling.
 2. Separately approve an isolated non-production Supabase project and its secret-management approach.
 3. Review and approve the session exchange, cookie, revocation, and CSRF integration design before implementation.
 4. Approve non-production remote D1 verification when ready.
