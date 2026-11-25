@@ -26,10 +26,10 @@ const REFRESH_SQL = `
      SET last_seen_at = ?
    WHERE id = ?
      AND revoked_at IS NULL
-     AND issued_at <= ?
-     AND expires_at > ?
-     AND COALESCE(last_seen_at, issued_at) <= ?
-     AND COALESCE(last_seen_at, issued_at) < ?
+     AND julianday(issued_at) <= julianday(?)
+     AND julianday(expires_at) > julianday(?)
+     AND julianday(COALESCE(last_seen_at, issued_at)) <= julianday(?)
+     AND julianday(COALESCE(last_seen_at, issued_at)) < julianday(?)
   RETURNING id, issued_at, expires_at, last_seen_at
 `;
 
@@ -53,7 +53,7 @@ async function refresh(db, id, now) {
   const candidate = iso(now);
   const cutoff = iso(now - 300_000);
   const result = await db.prepare(REFRESH_SQL)
-    .bind(candidate, id, candidate, candidate, cutoff, candidate)
+    .bind(candidate, id, candidate, candidate, candidate, cutoff)
     .all();
   return result.results || [];
 }
@@ -144,6 +144,32 @@ test("competing refreshes are monotonic and never change fixed expiry or issue t
       "SELECT last_seen_at FROM auth_sessions WHERE id=?"
     ).bind("session-1").first();
     assert.equal(afterDelayed.last_seen_at, iso(later));
+  } finally {
+    await mf.dispose();
+  }
+});
+
+test("refresh comparisons handle SQLite CURRENT_TIMESTAMP and ISO timestamps consistently", async () => {
+  const mf = new Miniflare({
+    modules: true,
+    script: "export default { fetch() { return new Response('ok'); } };",
+    compatibilityDate: "2026-08-06",
+    d1Databases: { DB: "cmd-session-lifecycle-mixed-time-db" }
+  });
+  try {
+    const db = await mf.getD1Database("DB");
+    await db.prepare(CREATE_SQL).run();
+    // SQLite's CURRENT_TIMESTAMP representation has a space and no timezone suffix.
+    await db.prepare(`
+      INSERT INTO auth_sessions
+        (id, auth_user_id, session_token_hash, issued_at, expires_at, last_seen_at)
+      VALUES ('sqlite-format', 'synthetic-user', 'hash-sqlite-format',
+        '2026-11-25 08:00:00', '2026-11-25 20:00:00', '2026-11-25 08:00:00')
+    `).run();
+    const now = Date.parse("2026-11-25T09:00:00.000Z");
+    const updated = await refresh(db, "sqlite-format", now);
+    assert.equal(updated.length, 1);
+    assert.equal(updated[0].last_seen_at, iso(now));
   } finally {
     await mf.dispose();
   }
