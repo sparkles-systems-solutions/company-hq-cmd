@@ -81,7 +81,7 @@ All tests must use synthetic identities and a disposable local D1/Miniflare data
 
 | Scenario | Expected result |
 |---|---|
-| Valid verified AAL2 token + active exact identity mapping | Exchange may proceed only after first-factor decision |
+| Valid verified AAL2 token + active exact identity mapping | Exchange remains blocked pending separately approved integration scope and required non-production environment |
 | Invalid signature, issuer, audience, expiry, subject, or AAL | Reject; no session and no cookie |
 | Anonymous/AAL1 token | Reject; no session and no cookie |
 | Missing, inactive, virtual, or ambiguous identity mapping | Reject; no account auto-creation |
