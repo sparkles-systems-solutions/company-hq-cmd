@@ -70,7 +70,7 @@ test("matching scoped allow is accepted by policy evaluator", () => {
 });
 
 
-function createAuthorizationDb({ assignments = [{ assignment_id: "as-1", role_id: "role-pmo" }], policies = [], scopedAllow = { allowed: 1 } } = {}) {
+function createAuthorizationDb({ assignments = [{ assignment_id: "as-1", role_id: "role-pmo" }], policies = [], scopedAllow = { allowed: 1 }, auditFails = false } = {}) {
   const auditEvents = [];
   return {
     auditEvents,
@@ -89,6 +89,7 @@ function createAuthorizationDb({ assignments = [{ assignment_id: "as-1", role_id
             },
             async run() {
               if (sql.includes("INSERT INTO audit_logs")) {
+                if (auditFails) throw new Error("synthetic audit outage");
                 auditEvents.push({ sql, values });
                 return { success: true };
               }
@@ -138,4 +139,60 @@ test("authorizeActor denies when no matching scoped grant exists", async () => {
   );
   assert.deepEqual(result, { allowed: false, status: 403, reason: "no_matching_scoped_allow" });
   assert.equal(db.auditEvents.length, 1);
+});
+
+
+test("authorizeActor denies when there are no active role assignments", async () => {
+  const db = createAuthorizationDb({ assignments: [] });
+  const result = await authorizeActor(db,
+    { personId: "human-1", personType: "human", mfaVerifiedAt: null },
+    { module: "PMO", action: "read", scopeType: "project", scopeId: "project-1" },
+    "request-no-role");
+  assert.deepEqual(result, { allowed: false, status: 403, reason: "no_active_role" });
+  assert.equal(db.auditEvents.length, 1);
+});
+
+test("authorizeActor never grants virtual actors approve or execute even with scoped allow", async (t) => {
+  for (const action of ["approve", "execute"]) {
+    await t.test(action, async () => {
+      const db = createAuthorizationDb({ policies: [{ effect: "allow" }], scopedAllow: { allowed: 1 } });
+      const result = await authorizeActor(db,
+        { personId: "virtual-1", personType: "virtual", mfaVerifiedAt: new Date().toISOString() },
+        { module: "PMO", action, scopeType: "project", scopeId: "project-1" },
+        "request-virtual-" + action);
+      assert.equal(result.allowed, false);
+      assert.equal(result.reason, "virtual_privileged_action_denied");
+    });
+  }
+});
+
+test("authorizeActor requires fresh MFA for privileged modules and audits the denial", async () => {
+  const db = createAuthorizationDb({ policies: [{ effect: "allow" }], scopedAllow: { allowed: 1 } });
+  const result = await authorizeActor(db,
+    { personId: "human-1", personType: "human", mfaVerifiedAt: null },
+    { module: "FIN", action: "read", scopeType: "company", scopeId: null },
+    "request-mfa");
+  assert.deepEqual(result, { allowed: false, status: 403, reason: "fresh_mfa_required" });
+  assert.equal(db.auditEvents.length, 1);
+});
+
+test("authorizeActor fails closed when denial audit persistence fails", async () => {
+  const db = createAuthorizationDb({ assignments: [], auditFails: true });
+  await assert.rejects(authorizeActor(db,
+    { personId: "human-1", personType: "human", mfaVerifiedAt: null },
+    { module: "PMO", action: "read", scopeType: "project", scopeId: "project-1" },
+    "request-audit-failure"));
+});
+
+test("authorizeActor rejects malformed server policy before querying role data", async () => {
+  let queryCount = 0;
+  const db = createAuthorizationDb();
+  const originalPrepare = db.prepare.bind(db);
+  db.prepare = (sql) => { queryCount += 1; return originalPrepare(sql); };
+  const result = await authorizeActor(db,
+    { personId: "human-1", personType: "human", mfaVerifiedAt: null },
+    { module: "PMO", action: "delete", scopeType: "project", scopeId: "project-1" },
+    "request-invalid-policy");
+  assert.deepEqual(result, { allowed: false, status: 400, reason: "invalid_permission_request" });
+  assert.equal(queryCount, 1, "only the denial audit insert is allowed");
 });
