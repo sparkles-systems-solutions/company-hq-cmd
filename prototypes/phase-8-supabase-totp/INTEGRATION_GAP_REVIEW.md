@@ -90,3 +90,8 @@ Additional isolated recheck tests now cover a second session lookup failure, ide
 ### 7. Browser mutation-guard adversarial unit coverage
 
 Expanded `request-security.test.js` with synthetic boundary cases for short/oversized CSRF cookie values, absent Fetch Metadata compatibility, multiple non-JSON content types, missing origin policy, and case-insensitive safe HTTP methods. The Worker package syntax-check command now checks every source JavaScript module rather than only the main handler and authorization module. These checks validate the standalone guard only; the guard remains unwired to mutation routes, and CORS still intentionally does not allow the CSRF header until a separately reviewed browser integration change.
+
+
+### 8. Consolidated browser-boundary test batch
+
+The standalone browser mutation guard now has additional synthetic tests for malformed/short/oversized CSRF values, missing Fetch Metadata compatibility, multiple non-JSON content types, missing origin configuration, and case-insensitive safe methods. The package syntax-check script now checks every JavaScript source module. The CORS contract remains intentionally unchanged: `x-cmd-csrf` is not enabled and no mutation route is wired. CI must run against the consolidated branch head before these additions are marked verified.
