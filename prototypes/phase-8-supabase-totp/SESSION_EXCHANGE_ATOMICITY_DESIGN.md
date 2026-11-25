@@ -109,3 +109,20 @@ Before coding a real exchange:
 6. Complete security review of failure, retry, concurrency, cookie, and logging behavior.
 
 Separate explicit CEO approval is required for any real Supabase project/configuration, credentials, live D1 migration or write, Worker deployment, real user activation, real TOTP enrollment, or PR merge.
+
+## 9. CEO first-factor decision and current isolated planner
+
+The CEO decision is now recorded: first factor is Supabase Auth Email + Password with a verified email address; TOTP is the required second factor. This supersedes the earlier undecided-first-factor wording in sections 1, 2, and 8. The decision is design-only and does not authorize a live provider project or an exchange endpoint.
+
+Added `worker/src/session-exchange-contract.js` and `worker/tests/session-exchange-contract.test.js`. The helper is a pure planner that accepts only already-verified upstream facts (JWT signature and issuer/audience/expiry checks, AAL2, verified email, exact active-human mapping, fresh MFA, and server-validated browser mutation context). It requires a short-lived server-generated exchange-key hash and rejects consumed, expired, malformed, or overlong keys. It returns only a non-secret plan with fixed 12-hour expiry and atomic-commit requirements.
+
+The planner does **not** verify a JWT, consume the key, query or write D1, create a CMD session token, set a cookie, or connect to a Worker route. The plan's flags are requirements, not proof that an atomic operation has happened.
+
+## 10. Cookie and exchange integration constraints
+
+When a separately approved implementation is eventually designed, use a host-only `__Host-cmd_session` cookie with `Secure; HttpOnly; Path=/; SameSite=Strict` and no `Domain`. Do not store provider or CMD tokens in localStorage/sessionStorage or return them in JSON. The raw opaque CMD token may appear only in the one Set-Cookie response after the atomic database operation is confirmed. All exchange responses must be `Cache-Control: no-store` and use a restrictive Referrer-Policy.
+
+The one-time exchange-key consumption, session-hash insert, and success audit event must be one atomic D1 unit. A unique constraint/conditional consume must ensure exactly one winner under concurrent replay. A retry with the same key must not create a second active session. If any statement including audit fails, no cookie may be returned and the entire logical operation must roll back. Existing Miniflare tests cover analogous batch rollback/idempotency primitives only; the planner itself does not consume a key and no remote D1 guarantee is claimed.
+
+The current browser mutation guard remains unwired, and current CORS preflight permits only `content-type`, not `x-cmd-csrf`. No browser exchange is ready until CSRF token issuance, guard wiring, and exact CORS allow-header behavior are implemented and tested together.
+
