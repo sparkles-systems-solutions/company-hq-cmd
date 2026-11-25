@@ -14,14 +14,15 @@ No live identity provider, real user, production credential, remote D1 database,
 
 ## Validation record
 
-- [GitHub Actions run #119](https://github.com/sparkles-systems-solutions/company-hq-cmd/actions/runs/45570759987): successful worker-tests job, including source syntax check, unit tests, and disposable SQLite migration/safety checks.
+- [GitHub Actions run #130](https://github.com/sparkles-systems-solutions/company-hq-cmd/actions/runs/45575739849): successful worker-tests job for the email/password + TOTP contract code, including source syntax check, unit tests, and disposable SQLite migration/safety checks.
+- The tested code commit was `0cc7567391fbc0de557b14ebf3c9f0c5eff1d013`; subsequent UAT/gap-review edits are documentation-only.
 - Tested code commit: `e4f4708ba74268c76b5c96df2c51834a096025b6`.
 - Documentation head at final review: `0867f13cfa513afb2e3c2ea4297c34c758f63d2c` (before this handover commit). The cited CI run is attached to the tested code commit; it is not represented as a run on subsequent documentation-only commits.
 
 ## Not delivered / outstanding
 
 - Live Supabase sign-in remains outstanding. The CEO has selected Email + Password with verified email as identifier and TOTP as the second factor for isolated prototype design only.
-- End-to-end Supabase sign-in, TOTP enrollment/challenge in a real isolated project, and CMD session exchange.
+- End-to-end Supabase sign-in, TOTP enrollment/challenge in a real isolated project, and CMD session exchange. The isolated prototype currently validates a mocked/trusted Auth SDK response contract only; no live provider sign-in is wired.
 - Runtime session lifecycle, cookie issuance/clearing, logout, rotation, global revocation, and CSRF integration.
 - Protected business API routes, route-level RBAC, data-scope enforcement, and field-level projection.
 - Dashboard share endpoint/schema/token/data connection.
