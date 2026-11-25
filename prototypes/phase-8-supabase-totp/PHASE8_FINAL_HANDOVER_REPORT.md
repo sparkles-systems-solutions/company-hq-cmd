@@ -1,0 +1,47 @@
+# Phase 8 — Final Handover Report
+
+**Project:** Central Management Dashboard (CMD)  
+**Company:** Sparkles Systems & Solutions  
+**Date:** 2026-11-25  
+**Branch:** `prototype/phase-8-supabase-totp`  
+**PR:** [#2 — isolated Supabase Auth + TOTP prototype foundation](https://github.com/sparkles-systems-solutions/company-hq-cmd/pull/2)
+
+## Delivery summary
+
+Phase 8 delivered an isolated security prototype consisting of Supabase JWT verification and claim checks, TOTP step-up adapter, exact identity mapping, browser request-security helper, session lifecycle policy helpers, a dependency-injected session pipeline test contract, authorization tests, disposable D1 atomicity/concurrency tests, and design/acceptance documents.
+
+No live identity provider, real user, production credential, remote D1 database, deployed Worker, or production environment was created or changed.
+
+## Validation record
+
+- [GitHub Actions run #119](https://github.com/sparkles-systems-solutions/company-hq-cmd/actions/runs/45570759987): successful worker-tests job, including source syntax check, unit tests, and disposable SQLite migration/safety checks.
+- Tested code commit: `e4f4708ba74268c76b5c96df2c51834a096025b6`.
+- Documentation head at final review: `0867f13cfa513afb2e3c2ea4297c34c758f63d2c` (before this handover commit). The cited CI run is attached to the tested code commit; it is not represented as a run on subsequent documentation-only commits.
+
+## Not delivered / outstanding
+
+- First-factor login method and verified sign-in identifier.
+- End-to-end Supabase sign-in, TOTP enrollment/challenge in a real isolated project, and CMD session exchange.
+- Runtime session lifecycle, cookie issuance/clearing, logout, rotation, global revocation, and CSRF integration.
+- Protected business API routes, route-level RBAC, data-scope enforcement, and field-level projection.
+- Dashboard share endpoint/schema/token/data connection.
+- Remote D1 verification, rate limiting, recovery, monitoring, backup/restore, staging, rollback, independent review, and production approval.
+
+## Current API
+
+Only `GET /api/health`, `GET /api/me`, and `OPTIONS` preflight are present. Other paths return 404. The existing `/api/me` cookie path is not a completed Supabase login/session pipeline.
+
+## Handover decision
+
+**Status: Prototype handover complete; product/security integration incomplete.**
+
+The work is suitable for continued isolated engineering and review with synthetic data. It must not be described as production-ready or a complete authentication system. PR #2 remains draft/open/unmerged. Do not merge it or deploy it without separate CEO approval.
+
+## CEO decisions needed to unblock the next engineering phase
+
+1. Choose the first-factor sign-in method and verified sign-in identifier.
+2. Separately approve an isolated non-production Supabase project and its secret-management approach.
+3. Review and approve the session exchange, cookie, revocation, and CSRF integration design before implementation.
+4. Approve non-production remote D1 verification when ready.
+
+Production deployment, real user activation, live D1 changes, real TOTP enrollment, production secrets/configuration, and PR merge remain separately gated by explicit CEO approval.
