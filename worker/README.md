@@ -23,15 +23,17 @@ No login/OTP provider, MFA enrollment, session issuance/rotation, D1 binding con
 From this directory:
 
 ```sh
-npm test
+npm install
 npm run check
+npm run test:unit
+npm run test:integration
 ```
 
-Tests use Node's built-in test runner and do not require third-party packages.
+Unit tests use Node's built-in test runner. D1 integration tests use Miniflare and its local `workerd` runtime with an isolated D1 database; they do not require a Cloudflare account or touch a remote database.
 
 ## Integration requirements before staging
 
-1. Add a disposable D1 database and replay migrations 0001–0005 in order.
+1. Add a dedicated disposable Cloudflare D1 database and replay migrations 0001–0005 in order. Miniflare integration tests are local-runtime validation only, not remote Cloudflare D1 validation.
 2. Confirm the Worker D1 binding is named `DB`.
 3. Configure `ALLOWED_ORIGIN` to the exact approved frontend origin.
 4. Implement a reviewed human login provider and MFA enrollment/verification flow before issuing sessions.
@@ -45,3 +47,7 @@ Do not deploy or connect production systems from this scaffold.
 ## CI coverage note
 
 The pull-request workflow validates Worker syntax and unit tests plus the ordered SQL migration replay and authorization invariants in a disposable SQLite database. This is not a substitute for Cloudflare D1 integration testing.
+
+## Local D1 integration coverage
+
+`tests/d1.integration.test.js` replays migrations 0001–0005 into an isolated Miniflare D1 database and exercises the Worker identity endpoint and D1-backed authorization queries. It covers active/revoked sessions, matching and mismatched role/scope assignments, explicit deny precedence, MFA gating, and audit writes. It does not issue real login credentials or deploy a Worker.
