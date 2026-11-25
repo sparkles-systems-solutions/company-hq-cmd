@@ -1,6 +1,6 @@
 # Phase 6 — Disposable Migration Replay & Authorization Schema Checks
 
-**Status:** Disposable SQLite migration replay and safety invariant checks passed in GitHub Actions run #25 on 2026-11-25. Cloudflare D1 runtime integration remains pending. No live Cloudflare D1 database has been accessed or modified.
+**Status:** Disposable SQLite migration replay, authorization safety invariants and expanded Worker policy tests passed in GitHub Actions run #30 on 2026-11-25. Cloudflare D1 runtime integration remains pending. No live Cloudflare D1 database has been accessed or modified.
 
 ## 1. Source review completed
 
@@ -43,19 +43,22 @@ The GitHub Actions workflow was extended to run this harness alongside Worker sy
 - Migration source review: completed.
 - Validation script: committed.
 - Initial CI run #17: Worker syntax and all 8 unit tests passed; migration replay failed because the test incorrectly assumed the Legal Advisor remained active after migration 0004. The migration explicitly resets all virtual members to `pending`.
-- Corrective test change committed: the disposable test now explicitly simulates a CEO-approved status transition inside the in-memory database before testing the active-grant path, then restores the member to `pending`. CI confirmation for this corrected version is pending.
-- Cloudflare D1 compatibility: **not yet proven**. SQLite in-memory replay is a useful schema-level check, but it is not the Cloudflare D1 runtime.
+- Corrective test change committed: the disposable test now explicitly simulates a CEO-approved status transition inside the in-memory database before testing the active-grant path, then restores the member to `pending`.
+- Corrected GitHub Actions run #25 (`45518706938`): full SQLite replay and safety invariant checks passed.
+- Subsequent Worker authorization review found an undefined `policyRows` reference in `authorizeActor`. It was corrected to retrieve role policy rows from D1 before applying deny-overrides-allow. MFA timezone-offset parsing was also corrected.
+- GitHub Actions run #30 (`45518871104`): syntax check passed, 11/11 Worker unit tests passed, and full migration replay/safety checks passed.
+- Cloudflare D1 compatibility: **not yet proven**. The Worker policy tests use a test double; they do not execute the SQL against Cloudflare D1. SQLite in-memory replay is a useful schema-level check, but it is not the Cloudflare D1 runtime.
 - Disposable D1 integration: pending.
 - Live D1: untouched.
 - Production: untouched.
 
 ## 5. Next requirements
 
-1. Confirm the GitHub Actions run for the commit containing the migration replay step.
-2. Resolve any failures before proceeding.
-3. Run the same ordered migration chain against a dedicated disposable Cloudflare D1 database.
-4. Verify D1 JSON functions, triggers, date/time behavior, foreign keys and Worker queries.
-5. Test authentication, session revocation, MFA, role/scope isolation, audit failure and token restrictions against D1.
+1. Create or identify a dedicated disposable Cloudflare D1 database; do not use the production database.
+2. Replay migrations 0001–0005 in order using the Cloudflare D1 migration runner.
+3. Verify D1 JSON functions, triggers, date/time behavior, foreign keys and Worker queries.
+4. Run Worker integration tests against the actual D1 binding for session lookup, role-policy retrieval, same-assignment scope matching, audit failure and deny behavior.
+5. Test authentication, session revocation, MFA and share-token restrictions against D1.
 6. Obtain CEO approval before any staging deployment or live D1 migration.
 
 **No migration is authorized for production by this report.**
