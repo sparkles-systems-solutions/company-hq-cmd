@@ -58,3 +58,7 @@ From `worker/`: `npm test` and `npm run check`. Tests are deterministic and requ
 
 ## Next implementation gate
 The CEO has selected Email + Password and approved TOTP for isolated prototype design. Before live provider integration, separately approve an isolated non-production Supabase project and secret handling. Review password/email verification settings, TOTP enrollment and recovery, session exchange and secure cookie design, atomic D1 session/audit writes, CSRF/Origin protections, and remote D1 compatibility. No staging or production work is authorized.
+
+## Authentication integration implementation plan
+
+See [AUTHENTICATION_INTEGRATION_IMPLEMENTATION_PLAN.md](./AUTHENTICATION_INTEGRATION_IMPLEMENTATION_PLAN.md) for the staged technical path from governance approval through provider wiring, one-time session exchange, atomic D1 commit, cookie/CSRF integration, lifecycle enforcement, route RBAC, UAT, and release gates. This is design documentation only; it does not authorize project creation, secrets, remote D1 writes, deployment, real-user activation, PR readiness, or merge.
