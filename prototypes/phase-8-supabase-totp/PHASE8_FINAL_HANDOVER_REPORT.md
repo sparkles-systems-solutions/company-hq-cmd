@@ -40,10 +40,10 @@ The work is suitable for continued isolated engineering and review with syntheti
 
 ## CEO decisions needed to unblock the next engineering phase
 
-1. First-factor decision is complete: Email + Password with verified email and TOTP. Next, separately approve an isolated non-production Supabase project and secret handling.
-2. Separately approve an isolated non-production Supabase project and its secret-management approach.
-3. Review and approve the session exchange, cookie, revocation, and CSRF integration design before implementation.
-4. Approve non-production remote D1 verification when ready.
+1. Separately approve creation of an isolated non-production Supabase project, including account owner, region, cost ceiling, test expiry, and cleanup.
+2. Approve the secret manager, named custodians, and credential lifecycle for that test project.
+3. Review and separately approve the session exchange, cookie, revocation, and CSRF integration scope before implementation.
+4. Separately approve non-production remote D1 provisioning/writes and atomicity verification when ready.
 
 Production deployment, real user activation, live D1 changes, real TOTP enrollment, production secrets/configuration, and PR merge remain separately gated by explicit CEO approval.
 
