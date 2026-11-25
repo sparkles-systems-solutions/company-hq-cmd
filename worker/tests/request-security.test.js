@@ -54,3 +54,31 @@ test("rejects missing, short or mismatched CSRF tokens", () => {
       "csrf_token_invalid");
   }
 });
+
+
+test("rejects malformed CSRF cookie lengths and absent fetch-site metadata remains compatible", () => {
+  for (const value of ["", "short", "a".repeat(257)]) {
+    const headers = { ...validHeaders, Cookie: "__Host-cmd_csrf=" + value, "x-cmd-csrf": value };
+    const result = validateBrowserMutation(req("POST", headers), { allowedOrigin: ORIGIN });
+    assert.equal(result.allowed, false);
+    assert.equal(result.reason, "csrf_token_invalid");
+  }
+  const noFetchMetadata = { ...validHeaders };
+  delete noFetchMetadata["Sec-Fetch-Site"];
+  assert.equal(validateBrowserMutation(req("POST", noFetchMetadata), { allowedOrigin: ORIGIN }).allowed, true);
+});
+
+test("rejects non-JSON variants and unsupported request origins", () => {
+  for (const contentType of ["text/plain", "application/x-www-form-urlencoded", "multipart/form-data"]) {
+    const result = validateBrowserMutation(req("POST", { ...validHeaders, "Content-Type": contentType }), { allowedOrigin: ORIGIN });
+    assert.equal(result.status, 415);
+  }
+  assert.equal(validateBrowserMutation(req("POST", validHeaders), { allowedOrigin: "" }).reason,
+    "origin_policy_not_configured");
+});
+
+test("safe methods are case-insensitive and never require browser mutation tokens", () => {
+  for (const method of ["get", "HEAD", "options"]) {
+    assert.equal(validateBrowserMutation(req(method), { allowedOrigin: ORIGIN }).allowed, true);
+  }
+});
