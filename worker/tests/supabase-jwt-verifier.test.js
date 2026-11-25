@@ -52,7 +52,11 @@ test("rejects correctly signed AAL1 token", async () => {
 
 test("rejects tampered and incorrectly signed tokens", async () => {
   const { token, jwks } = await fixture();
-  const tampered = token.slice(0, -1) + (token.endsWith("a") ? "b" : "a");
+  const [header, payload, signature] = token.split(".");
+  const decodedPayload = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
+  decodedPayload.sub = "223e4567-e89b-42d3-a456-426614174000";
+  const tamperedPayload = Buffer.from(JSON.stringify(decodedPayload)).toString("base64url");
+  const tampered = [header, tamperedPayload, signature].join(".");
   const result = await verifySupabaseAccessToken(tampered, ENV, { jwks, nowSeconds: NOW });
   assert.equal(result.valid, false);
   assert.equal(result.reason, "jwt_verification_failed");
