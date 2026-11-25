@@ -85,3 +85,17 @@ These are documentation-only controls. They do not authorize project creation, s
 - [ ] Provider project creation, secrets, live sign-in/TOTP, remote D1, runtime exchange/cookie integration, deployment, real-user activation, PR readiness, and merge remain unauthorized or unimplemented pending their separate approvals.
 
 Batch 10 changed documentation only. No CI run is claimed for this documentation-only update; the latest cited code CI evidence remains run #144 on commit 2cf5e2ba02f296106e74845f1346629beead6534.
+
+## H. Batch 11 — pre-integration readiness review
+
+- [x] Reviewed current Worker entry point and isolated auth/session helpers.
+- [x] Recorded that Supabase verifier/TOTP/request-security/lifecycle helpers are not wired into the Worker request path.
+- [x] Recorded that current cookie authentication does not enforce full idle/lifecycle policy.
+- [x] Recorded that protected business routes and exchange/cookie/logout routes are not implemented.
+- [x] Recorded CSRF/CORS integration gap and current content-type-only CORS allow-header.
+- [x] Identified direct bearer-exchange vs two-step exchange-key design conflict and SameSite policy inconsistency.
+- [x] Confirmed D1 atomicity evidence is disposable/local only; remote D1 remains unverified.
+- [ ] Resolve one canonical exchange protocol, cookie SameSite policy, CSRF protocol, and audit atomicity contract before implementation.
+- [ ] Complete separately approved non-production project and secret-custody gate before provider integration.
+
+Disposition: NOT READY for runtime authentication integration. Batch 11 changed documentation only; no CI run is claimed for this documentation-only review.
