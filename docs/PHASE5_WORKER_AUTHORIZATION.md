@@ -6,7 +6,7 @@
 
 - `worker/src/authorization.js`: strict module/action/scope validation, cookie parsing, MFA requirement classification, deny-overrides-allow policy evaluator, SHA-256 helper.
 - `worker/src/index.js`: D1-backed session lookup, active human identity check, current role assignment lookup, permission rule lookup, scoped grant lookup, audit writes, CORS/security response headers, minimal health and identity endpoints.
-- `worker/tests/authorization.test.js`: Node built-in tests for cookie parsing, malformed policy requests, scope validation, MFA requirements, virtual privileged-action denial, explicit deny precedence, default deny, and scoped allow.
+- `worker/tests/authorization.test.js`: Node built-in tests for cookie parsing, malformed policy requests, scope validation, MFA requirements, virtual privileged-action denial, explicit deny precedence, default deny, scoped allow, D1 role-policy retrieval, and scoped authorization outcomes.
 - `worker/package.json`: dependency-free local test scripts.
 
 ## Security boundaries
@@ -22,7 +22,7 @@
 
 ## Test status
 
-GitHub Actions run `45457728771` (run #3) completed successfully on the current PR head. Both the `Syntax check` and `Unit tests` steps passed. This confirms JavaScript syntax and the isolated policy unit tests only; it does not validate D1 queries, full migration replay, or deployed Worker behavior. D1 integration and full migration replay remain pending.
+GitHub Actions run #30 (`45518871104`) completed successfully on 2026-11-25. Syntax check passed, all 11 unit tests passed, and the disposable SQLite migration replay/safety checks passed. The source review found and fixed an undefined `policyRows` reference in `authorizeActor`; the Worker now loads role policy rows from D1 before applying explicit-deny precedence. MFA timezone-offset parsing was also corrected. These tests still do not prove actual Cloudflare D1 query behavior or deployed Worker behavior; D1 integration remains pending.
 
 ## Known limitations before staging
 
@@ -33,9 +33,9 @@ GitHub Actions run `45457728771` (run #3) completed successfully on the current 
 5. Add route-specific policies and integration tests before adding any business endpoint.
 6. Add atomic share-token access counting and read-only field filtering before enabling no-login links.
 7. Add an immutable audit strategy and operational retention/backup controls.
-8. Verify MFA timestamp parsing against actual D1 timestamp formats in integration tests.
+8. Verify corrected MFA timestamp parsing against actual D1 timestamp formats in integration tests.
 9. Verify full migrations 0001–0005 against disposable D1 before staging.
-10. Add tests proving permission rules and scope grants must belong to the same active role assignment.
+10. Verify in D1 integration tests that permission rules and scope grants belong to the same active role assignment.
 
 ## Not done
 
