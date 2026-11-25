@@ -32,6 +32,9 @@ CREATE TABLE IF NOT EXISTS permission_catalogue (
 );
 
 -- Catalogue entries are definitions, not grants.
+WITH actions(action_key) AS (
+  VALUES ('read'), ('draft'), ('propose'), ('test'), ('approve'), ('execute')
+)
 INSERT OR IGNORE INTO permission_catalogue
   (permission_key, module_key, action_key, description, is_sensitive)
 SELECT
@@ -39,9 +42,7 @@ SELECT
   module_key || ' module ' || action_key || ' permission (catalogue only)',
   CASE WHEN action_key IN ('approve','execute') OR module_key IN ('FIN','SEC','SHARE') THEN 1 ELSE 0 END
 FROM module_catalogue
-CROSS JOIN (
-  VALUES ('read'), ('draft'), ('propose'), ('test'), ('approve'), ('execute')
-) AS actions(action_key);
+CROSS JOIN actions;
 
 CREATE TABLE IF NOT EXISTS role_permission_rules (
   id TEXT PRIMARY KEY,
