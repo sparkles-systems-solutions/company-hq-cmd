@@ -30,8 +30,8 @@ test("maps verified AAL2 email/password Supabase subject to active human CMD ide
   }, capture), claims, { authProvider: "email_password" });
   assert.equal(result.matched, true);
   assert.deepEqual(capture.values, ["email_password", claims.subject]);
-  assert.match(capture.sql, /p\\.person_type = 'human'/);
-  assert.match(capture.sql, /p\\.status = 'active'/);
+  assert.ok(capture.sql.includes("p.person_type = 'human'"));
+  assert.ok(capture.sql.includes("p.status = 'active'"));
 });
 
 test("rejects unverified claims, AAL1 and request-controlled provider values before querying", async () => {
