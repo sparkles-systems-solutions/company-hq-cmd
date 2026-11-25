@@ -6,6 +6,7 @@ import {
   requiresFreshMfa,
   evaluateRolePolicy
 } from "../src/authorization.js";
+import { authorizeActor } from "../src/index.js";
 
 test("cookie parser handles multiple cookies and ignores malformed parts", () => {
   assert.deepEqual(
@@ -66,4 +67,75 @@ test("matching scoped allow is accepted by policy evaluator", () => {
   assert.deepEqual(evaluateRolePolicy({
     personType: "human", action: "read", hasExplicitDeny: false, hasScopedAllow: true
   }), { allowed: true, reason: "scoped_allow" });
+});
+
+
+function createAuthorizationDb({ assignments = [{ assignment_id: "as-1", role_id: "role-pmo" }], policies = [], scopedAllow = { allowed: 1 } } = {}) {
+  const auditEvents = [];
+  return {
+    auditEvents,
+    prepare(sql) {
+      return {
+        bind(...values) {
+          return {
+            async all() {
+              if (sql.includes("FROM role_assignments ra")) return { results: assignments };
+              if (sql.includes("FROM role_permission_rules")) return { results: policies };
+              throw new Error("Unexpected .all() SQL: " + sql);
+            },
+            async first() {
+              if (sql.includes("FROM role_scope_grants g")) return scopedAllow;
+              throw new Error("Unexpected .first() SQL: " + sql);
+            },
+            async run() {
+              if (sql.includes("INSERT INTO audit_logs")) {
+                auditEvents.push({ sql, values });
+                return { success: true };
+              }
+              throw new Error("Unexpected .run() SQL: " + sql);
+            }
+          };
+        }
+      };
+    }
+  };
+}
+
+test("authorizeActor loads role policies from D1 and explicit deny overrides scoped allow", async () => {
+  const db = createAuthorizationDb({
+    policies: [{ effect: "allow" }, { effect: "deny" }],
+    scopedAllow: { allowed: 1 }
+  });
+  const result = await authorizeActor(
+    db,
+    { personId: "human-1", personType: "human", mfaVerifiedAt: null },
+    { module: "PMO", action: "read", scopeType: "project", scopeId: "project-1" },
+    "request-1"
+  );
+  assert.deepEqual(result, { allowed: false, status: 403, reason: "explicit_deny" });
+  assert.equal(db.auditEvents.length, 1);
+});
+
+test("authorizeActor permits a matching scoped allow when no explicit deny exists", async () => {
+  const db = createAuthorizationDb({ policies: [{ effect: "allow" }], scopedAllow: { allowed: 1 } });
+  const result = await authorizeActor(
+    db,
+    { personId: "human-1", personType: "human", mfaVerifiedAt: null },
+    { module: "PMO", action: "read", scopeType: "project", scopeId: "project-1" },
+    "request-2"
+  );
+  assert.deepEqual(result, { allowed: true, status: 200, reason: "scoped_allow" });
+  assert.equal(db.auditEvents.length, 1);
+});
+
+test("authorizeActor denies when no matching scoped grant exists", async () => {
+  const db = createAuthorizationDb({ policies: [{ effect: "allow" }], scopedAllow: null });
+  const result = await authorizeActor(
+    db,
+    { personId: "human-1", personType: "human", mfaVerifiedAt: null },
+    { module: "PMO", action: "read", scopeType: "project", scopeId: "project-1" },
+    "request-3"
+  );
+  assert.deepEqual(result, { allowed: false, status: 403, reason: "no_matching_scoped_allow" });
+  assert.equal(db.auditEvents.length, 1);
 });
